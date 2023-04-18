@@ -26,7 +26,7 @@ namespace StudentHelper.WebApi.Controllers
         public async Task<Response> Login(LoginRequest request)
         {
             var result = await _signInManager
-                .PasswordSignInAsync(request.Email, request.Password, request.RememberMe, lockoutOnFailure: false);
+                .PasswordSignInAsync(request.UserName, request.Password, request.RememberMe, lockoutOnFailure: false);
             if (result.Succeeded)
             {
                 return new Response(200, true, "User voshel v sistemu");
@@ -37,12 +37,11 @@ namespace StudentHelper.WebApi.Controllers
         [HttpPost("Register")]
         public async Task<Response> Register(RegisterRequest request)
         {
-            var user = new User { UserName = request.Email, Email = request.Email };
             var result = await RegisterUser(request);
             
             if (result.Succeeded)
             {
-                await _signInManager.PasswordSignInAsync(request.Email, request.Password, isPersistent: true, lockoutOnFailure: false);
+                await _signInManager.PasswordSignInAsync(request.UserName, request.Password, isPersistent: true, lockoutOnFailure: false);
                 return new Response(200, true, "User has been registered");
             }
             return new Response(400, false, $"You ne zaregalsya something error");
@@ -63,17 +62,17 @@ namespace StudentHelper.WebApi.Controllers
             {
                 return new Response(404, false, "Not Found!");
             }
-            return new Response(200, true, $"ID: {user.Id}, EMAIL: {user.Email}, USERNAME: {user.UserName}");
+            return new Response(200, true, $"Id: {user.Id}, Email: {user.Email}, UserName: {user.UserName}");
         }
-        private void SetUserProperties(User user, string email)
+        private void SetUserProperties(User user, string email, string username)
         {
+            user.UserName = username;
             user.Email = email;
-            user.UserName = email;
         }
         private async Task<IdentityResult> RegisterUser(RegisterRequest request)
         {
             var user = new User();
-            SetUserProperties(user, request.Email);
+            SetUserProperties(user, request.Email, request.UserName);
 
             var result = await _userManager.CreateAsync(user, request.Password);
 

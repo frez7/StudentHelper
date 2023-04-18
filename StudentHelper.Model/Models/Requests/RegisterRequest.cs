@@ -9,5 +9,8 @@ namespace StudentHelper.Model.Models.Requests
 
         [Required]
         public string Password { get; set; }
+
+        [Required]
+        public string UserName { get; set; }
     }
 }
