@@ -1,16 +1,21 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using StudentHelper.Model.Models.Entities;
+using StudentHelper.Model.Models.Entities.RoleEntities;
 
 namespace StudentHelper.WebApi.Data
 {
-    public class IdentityDbContext : IdentityDbContext<User>
+    public class IdentityContext : IdentityDbContext<User, IdentityRole, string>
     {
-        public IdentityDbContext(DbContextOptions<IdentityDbContext> options)
+        public IdentityContext(DbContextOptions<IdentityContext> options)
         : base(options)
         {
 
         }
+        public DbSet<AdminRole> AdminRole { get; set; }
+        public DbSet<UserRole> UserRole {  get; set; }
+        public DbSet<ManagerRole> ManagerRole { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -30,9 +35,13 @@ namespace StudentHelper.WebApi.Data
             });
         }
 
-        protected override void OnModelCreating(ModelBuilder builder)
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(builder);
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<AdminRole>().HasBaseType<IdentityRole>();
+            modelBuilder.Entity<ManagerRole>().HasBaseType<IdentityRole>();
+            modelBuilder.Entity<UserRole>().HasBaseType<IdentityRole>();
         }
     }
 }

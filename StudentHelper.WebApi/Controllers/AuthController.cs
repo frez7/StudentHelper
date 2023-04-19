@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using StudentHelper.Model.Models.Common;
 using StudentHelper.Model.Models.Entities;
+using StudentHelper.Model.Models.Entities.RoleEntities;
 using StudentHelper.Model.Models.Requests;
 
 namespace StudentHelper.WebApi.Controllers
@@ -14,11 +15,13 @@ namespace StudentHelper.WebApi.Controllers
     {
         private readonly SignInManager<User> _signInManager;
         private readonly UserManager<User> _userManager;
+        private readonly RoleManager<AdminRole> _roleManager;
 
-        public AuthController(SignInManager<User> signInManager, UserManager<User> userManager)
+        public AuthController(SignInManager<User> signInManager, UserManager<User> userManager, RoleManager<AdminRole> roleManager)
         {
             _signInManager = signInManager;
             _userManager = userManager;
+            _roleManager = roleManager;
         }
 
         [AllowAnonymous]
@@ -54,15 +57,19 @@ namespace StudentHelper.WebApi.Controllers
             return new Response(200, true, "Logout completed");
         }
 
+        [Authorize(Roles ="Admin")]
         [HttpGet("GetCurrentUser")]
-        public async Task<Response> GetCurrentUser()
+        public async Task<User> GetCurrentUser()
         {
             var user = await _userManager.GetUserAsync(User);
+            
             if (user == null)
             {
-                return new Response(404, false, "Not Found!");
+                return user;
+                //return new Response(404, false, "Not Found!");
             }
-            return new Response(200, true, $"Id: {user.Id}, Email: {user.Email}, UserName: {user.UserName}");
+            return user;
+            //return new Response(200, true, $"Id: {user.Id}, Email: {user.Email}, UserName: {user.UserName}");
         }
         private void SetUserProperties(User user, string email, string username)
         {
@@ -71,10 +78,15 @@ namespace StudentHelper.WebApi.Controllers
         }
         private async Task<IdentityResult> RegisterUser(RegisterRequest request)
         {
-            var user = new User();
-            SetUserProperties(user, request.Email, request.UserName);
 
+            var user = new User();
+            var role = new AdminRole { Name = "Admin" };
+            await _roleManager.CreateAsync(role);
+            
+            SetUserProperties(user, request.Email, request.UserName);
+           
             var result = await _userManager.CreateAsync(user, request.Password);
+            await _userManager.AddToRoleAsync(user, "Admin");
 
             return result;
         }

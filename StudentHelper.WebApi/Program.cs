@@ -2,17 +2,22 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.OpenApi.Models;
 using StudentHelper.Model.Models.Entities;
+using StudentHelper.Model.Models.Entities.RoleEntities;
 using StudentHelper.WebApi.Controllers;
 using StudentHelper.WebApi.Data;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDbContext<IdentityDbContext>();
+builder.Services.AddDbContext<IdentityContext>();
 
-builder.Services.AddIdentity<User, IdentityRole>()
-    .AddEntityFrameworkStores<IdentityDbContext>()
+
+
+builder.Services.AddIdentity<User, AdminRole>()
+    .AddEntityFrameworkStores<IdentityContext>()
     .AddDefaultTokenProviders();
+
+
 
 builder.Services.Configure<IdentityOptions>(options =>
 {
