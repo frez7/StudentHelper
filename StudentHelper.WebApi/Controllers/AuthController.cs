@@ -70,8 +70,8 @@ namespace StudentHelper.WebApi.Controllers
             return new UserResponse(200, true, $"User info:", user.UserName, user.Email, user.Id, roles.ToList());
         }
 
-        [HttpPost("ChangeUserPassword")]
-        public async Task<Response> ChangeUserPassword(ChangePasswordRequest request)
+        [HttpPost("ChangeCurrentPassword")]
+        public async Task<Response> ChangeCurrentPassword(ChangePasswordRequest request)
         {
             var user = await _userManager.GetUserAsync(User);
             var result = await _userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
