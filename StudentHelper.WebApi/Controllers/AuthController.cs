@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using StudentHelper.Model.Models.Common;
 using StudentHelper.Model.Models.Entities;
-using StudentHelper.Model.Models.Entities.RoleEntities;
 using StudentHelper.Model.Models.Requests;
 
 namespace StudentHelper.WebApi.Controllers
@@ -15,9 +14,9 @@ namespace StudentHelper.WebApi.Controllers
     {
         private readonly SignInManager<User> _signInManager;
         private readonly UserManager<User> _userManager;
-        private readonly RoleManager<AdminRole> _roleManager;
+        private readonly RoleManager<Role> _roleManager;
 
-        public AuthController(SignInManager<User> signInManager, UserManager<User> userManager, RoleManager<AdminRole> roleManager)
+        public AuthController(SignInManager<User> signInManager, UserManager<User> userManager, RoleManager<Role> roleManager)
         {
             _signInManager = signInManager;
             _userManager = userManager;
@@ -57,19 +56,30 @@ namespace StudentHelper.WebApi.Controllers
             return new Response(200, true, "Logout completed");
         }
 
-        [Authorize(Roles ="Admin")]
+        [Authorize(Roles ="Admin, User")]
         [HttpGet("GetCurrentUser")]
-        public async Task<User> GetCurrentUser()
+        public async Task<UserResponse> GetCurrentUser()
         {
             var user = await _userManager.GetUserAsync(User);
+            var roles = await _userManager.GetRolesAsync(user);
             
             if (user == null)
             {
-                return user;
-                //return new Response(404, false, "Not Found!");
+                return new UserResponse(404, false, "Not Found!", "", "", "", null);
             }
-            return user;
-            //return new Response(200, true, $"Id: {user.Id}, Email: {user.Email}, UserName: {user.UserName}");
+            return new UserResponse(200, true, $"User info:", user.UserName, user.Email, user.Id, roles.ToList());
+        }
+
+        [HttpPost("ChangeUserPassword")]
+        public async Task<Response> ChangeUserPassword(ChangePasswordRequest request)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            var result = await _userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
+            if (!result.Succeeded)
+            {
+                return new Response(400, false, "Неудачная попытка смены пароля, перепроверьте введенные данные!");
+            }
+            return new Response(200, true, "Вы успешно сменили свой пароль, запомните его!");
         }
         private void SetUserProperties(User user, string email, string username)
         {
@@ -80,7 +90,7 @@ namespace StudentHelper.WebApi.Controllers
         {
 
             var user = new User();
-            var role = new AdminRole { Name = "Admin" };
+            var role = new Role { Name = "Admin" };
             await _roleManager.CreateAsync(role);
             
             SetUserProperties(user, request.Email, request.UserName);

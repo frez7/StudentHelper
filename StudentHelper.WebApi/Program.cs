@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.OpenApi.Models;
 using StudentHelper.Model.Models.Entities;
-using StudentHelper.Model.Models.Entities.RoleEntities;
 using StudentHelper.WebApi.Controllers;
 using StudentHelper.WebApi.Data;
 
@@ -13,7 +12,7 @@ builder.Services.AddDbContext<IdentityContext>();
 
 
 
-builder.Services.AddIdentity<User, AdminRole>()
+builder.Services.AddIdentity<User, Role>()
     .AddEntityFrameworkStores<IdentityContext>()
     .AddDefaultTokenProviders();
 
