@@ -59,6 +59,10 @@ builder.Services.AddSwaggerGen(options =>
 
 
 var app = builder.Build();
+app.UseCors(builder => builder
+    .WithOrigins()
+    .AllowAnyHeader()
+    .AllowAnyMethod());
 
 app.UseSwagger();
 app.UseSwaggerUI(c =>
