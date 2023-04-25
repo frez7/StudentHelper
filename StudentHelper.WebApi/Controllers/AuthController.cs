@@ -6,6 +6,7 @@ using StudentHelper.Model.Models.Configs;
 using StudentHelper.Model.Models.Entities;
 using StudentHelper.Model.Models.Requests;
 using StudentHelper.WebApi.Service;
+using System.Net;
 
 namespace StudentHelper.WebApi.Controllers
 {
@@ -16,13 +17,11 @@ namespace StudentHelper.WebApi.Controllers
     {
         private readonly SignInManager<User> _signInManager;
         private readonly UserManager<User> _userManager;
-        private readonly RoleManager<AdminRole> _roleManager;
+        private readonly RoleManager<Role> _roleManager;
         private readonly EmailService _emailService;
         private readonly SMTPConfig _config;
-        private readonly IWebHostEnvironment _environment;
 
-
-        public AuthController(SignInManager<User> signInManager, UserManager<User> userManager, RoleManager<AdminRole> roleManager, EmailService emailService, SMTPConfig config)
+        public AuthController(SignInManager<User> signInManager, UserManager<User> userManager, RoleManager<Role> roleManager, EmailService emailService, SMTPConfig config)
         {
             _signInManager = signInManager;
             _userManager = userManager;
@@ -77,26 +76,35 @@ namespace StudentHelper.WebApi.Controllers
                 Subject = $"Please reset your password by clicking here: <a href='{callbackUrl}'>link</a>",
                 RecipientEmail = request.RecipientEmail
             };
-            // You can use any email service provider to send email here
             await _emailService.SendEmailAsync(emailRequest, _config);
 
             return new Response(200, true, $"{callbackUrl}");
         }
 
         [AllowAnonymous]
-        [HttpPost("ResetPassword")]
-        public async Task<Response> ResetPassword(ResetPasswordRequest request)
+        [HttpGet("ResetPassword")]
+        public async Task<Response> ResetPassword(string userId, string token)
         {
-            var user = await _userManager.FindByNameAsync(request.UserName);
+            var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
             {
                 return new Response(400, false, "User does not exist.");
             }
-
-            var result = await _userManager.ResetPasswordAsync(user, request.Token, request.NewPassword);
+            var newPass = GeneratePassword();
+            var result = await _userManager.ResetPasswordAsync(user, token, newPass);
+            var emailRequest = new EmailRequest
+            {
+                Body = "Сброс пароля",
+                Subject =
+                $"UserName: {user.UserName}<br/>" +
+                $"Password: {newPass}<br/>" +
+                $"Email: {user.Email}",
+                RecipientEmail = user.Email,
+            };
             if (result.Succeeded)
             {
-                return new Response(200, true, "Password has been reset successfully.");
+                await _emailService.SendEmailAsync(emailRequest, _config);
+                return new Response(200, true, "Вы успешно сбросили свой пароль, он был отправлен на вашу почту!");
             }
             return new Response(400, false, "Failed to reset password.");
         }
@@ -152,6 +160,26 @@ namespace StudentHelper.WebApi.Controllers
             await _userManager.AddToRoleAsync(user, "Admin");
 
             return result;
+        }
+        private string GeneratePassword()
+        {
+            const string allowedChars = "abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNOPQRSTUVWXYZ0123456789!@$?_-";
+            const int passwordLength = 8;
+
+            var randNum = new Random();
+            var chars = new char[passwordLength];
+            var allowedCharCount = allowedChars.Length;
+
+            chars[0] = allowedChars[randNum.Next(0, 25)];
+            chars[1] = allowedChars[randNum.Next(26, 51)];
+            chars[2] = allowedChars[randNum.Next(52, 61)];
+
+            for (int i = 3; i < passwordLength; i++)
+            {
+                chars[i] = allowedChars[randNum.Next(0, allowedCharCount)];
+            }
+
+            return new string(chars);
         }
     }
 }
