@@ -1,15 +1,22 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.OpenApi.Models;
+using StudentHelper.Model.Models.Configs;
 using StudentHelper.Model.Models.Entities;
 using StudentHelper.Model.Models.Entities.RoleEntities;
 using StudentHelper.WebApi.Controllers;
 using StudentHelper.WebApi.Data;
-
+using StudentHelper.WebApi.Service;
+using System.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddSingleton(provider =>
+    builder.Configuration.GetSection("SMTPConfig").Get<SMTPConfig>());
+
 
 builder.Services.AddDbContext<IdentityContext>();
+
+builder.Services.AddTransient<EmailService>();
 
 
 
@@ -70,4 +77,17 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+Config? BindConfiguration(IServiceProvider provider)
+{
+    var envName = builder.Environment.EnvironmentName;
+
+    var config = new ConfigurationBuilder()
+        .AddJsonFile($"appsettings.json")
+        .Build();
+
+    var configService = config.Get<Config>();
+    return configService;
+}
+
 
