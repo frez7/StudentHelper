@@ -26,7 +26,7 @@ namespace StudentHelper.WebApi.Data
                 ?? throw new InvalidOperationException(
                     "Connection string 'IdentityDbContextConnection' not found.");
 
-            optionsBuilder.UseNpgsql(connectionString, builder =>
+            optionsBuilder.UseSqlServer(connectionString, builder =>
             {
                 builder.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null);
             });
