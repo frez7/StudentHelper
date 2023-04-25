@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using StudentHelper.Model.Models.Entities;
-using StudentHelper.Model.Models.Entities.RoleEntities;
 
 namespace StudentHelper.WebApi.Data
 {
@@ -13,9 +12,7 @@ namespace StudentHelper.WebApi.Data
         {
 
         }
-        public DbSet<AdminRole> AdminRole { get; set; }
-        public DbSet<UserRole> UserRole {  get; set; }
-        public DbSet<ManagerRole> ManagerRole { get; set; }
+        public DbSet<Role> Role { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -29,7 +26,7 @@ namespace StudentHelper.WebApi.Data
                 ?? throw new InvalidOperationException(
                     "Connection string 'IdentityDbContextConnection' not found.");
 
-            optionsBuilder.UseNpgsql(connectionString, builder =>
+            optionsBuilder.UseSqlServer(connectionString, builder =>
             {
                 builder.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null);
             });
@@ -39,9 +36,7 @@ namespace StudentHelper.WebApi.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<AdminRole>().HasBaseType<IdentityRole>();
-            modelBuilder.Entity<ManagerRole>().HasBaseType<IdentityRole>();
-            modelBuilder.Entity<UserRole>().HasBaseType<IdentityRole>();
+            modelBuilder.Entity<Role>().HasBaseType<IdentityRole>();
         }
     }
 }
