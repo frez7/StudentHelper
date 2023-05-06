@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using StudentHelper.Model.Models;
 using StudentHelper.Model.Models.Common;
 using StudentHelper.Model.Models.Configs;
 using StudentHelper.Model.Models.Entities;
@@ -8,6 +10,7 @@ using StudentHelper.Model.Models.Requests;
 using StudentHelper.WebApi.Data;
 using StudentHelper.WebApi.Extensions;
 using StudentHelper.WebApi.Service;
+using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 
 namespace StudentHelper.WebApi.Controllers
@@ -24,9 +27,8 @@ namespace StudentHelper.WebApi.Controllers
         private readonly SMTPConfig _config;
         private readonly ITokenService _tokenService;
         private readonly IConfiguration _configuration;
-        private readonly IdentityContext _context;
 
-        public AuthController(SignInManager<User> signInManager, UserManager<User> userManager, RoleManager<IdentityRole<int>> roleManager, EmailService emailService, SMTPConfig config, ITokenService tokenService, IConfiguration configuration, IdentityContext context)
+        public AuthController(SignInManager<User> signInManager, UserManager<User> userManager, RoleManager<IdentityRole<int>> roleManager, EmailService emailService, SMTPConfig config, ITokenService tokenService, IConfiguration configuration)
         {
             _signInManager = signInManager;
             _userManager = userManager;
@@ -35,12 +37,11 @@ namespace StudentHelper.WebApi.Controllers
             _roleManager = roleManager;
             _tokenService = tokenService;
             _configuration = configuration;
-            _context = context;
         }
 
         [AllowAnonymous]
         [HttpPost("Login")]
-        public async Task<ActionResult<AuthResponse>> Login(LoginRequest request)
+        public async Task<ActionResult<AuthResponse>> Authenticate([FromBody] LoginRequest request)
         {
             if (!ModelState.IsValid)
             {
@@ -66,28 +67,82 @@ namespace StudentHelper.WebApi.Controllers
                 var role = await _roleManager.FindByNameAsync(roleName);
                 identityRoles.Add(role);
             }
-            var dbUser = _context.Users.FirstOrDefault(u => u.UserName == request.UserName);
             var accessToken = _tokenService.CreateToken(user, identityRoles);
-            dbUser.RefreshToken = _configuration.GenerateRefreshToken();
-            dbUser.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(_configuration.GetSection("Jwt:RefreshTokenValidityInDays").Get<int>());
-            await _context.SaveChangesAsync();
-            return Ok(new AuthResponse(200, true, "Пользователь успешно вошел в систему!"
+            user.RefreshToken = _configuration.GenerateRefreshToken();
+            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(_configuration.GetSection("Jwt:RefreshTokenValidityInDays").Get<int>());
+            await _userManager.UpdateAsync(user);
+            return Ok(new AuthResponse(200, true, "Операция успешна!"
                 , accessToken, user.RefreshToken, user.UserName));
         }
 
 
         [AllowAnonymous]
         [HttpPost("Register")]
-        public async Task<Response> Register(RegisterRequest request)
+        public async Task<ActionResult<AuthResponse>> Register(RegisterRequest request)
         {
-            var result = await RegisterUser(request);
+            if (!ModelState.IsValid) 
+                return BadRequest(ModelState);
 
-            if (result.Succeeded)
+            var user = new User
             {
-                await _signInManager.PasswordSignInAsync(request.UserName, request.Password, isPersistent: true, lockoutOnFailure: false);
-                return new Response(200, true, "User has been registered");
+                UserName = request.UserName,
+                Email = request.Email,
+            };
+
+            var result = await _userManager.CreateAsync(user, request.Password);
+
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
             }
-            return new Response(400, false, $"You ne zaregalsya something error");
+
+            if (!result.Succeeded) 
+                return BadRequest(new Response(400, false, "Произошла некая ошибка при создании нового пользователя!"));
+
+
+            var role = new IdentityRole<int> { Name = "User" };
+            await _roleManager.CreateAsync(role);
+            await _userManager.AddToRoleAsync(user, "User");
+
+            return await Authenticate(new LoginRequest
+            {
+                UserName = request.UserName,
+                Password = request.Password
+            });
+        }
+        [AllowAnonymous]
+        [HttpPost("Refresh-Token")]
+        public async Task<ActionResult<TokenModel>> RefreshToken(TokenModel? tokenModel)
+        {
+            if (tokenModel is null)
+            {
+                return BadRequest(new Response(400, false, "Ошибка на стороне клиента!"));
+            }
+
+            var accessToken = tokenModel.AccessToken;
+            var refreshToken = tokenModel.RefreshToken;
+            var principal = _configuration.GetPrincipalFromExpiredToken(accessToken);
+
+            if (principal == null)
+            {
+                return BadRequest(new Response(400, false, "Неверный \"Access\" или \"Refresh\" токен!"));
+            }
+
+            var username = principal.Identity!.Name;
+            var user = await _userManager.FindByNameAsync(username!);
+
+            if (user == null || user.RefreshToken != refreshToken || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
+            {
+                return BadRequest(new Response(400, false, "Неверный \"Access\" или \"Refresh\" токен!"));
+            }
+
+            var newAccessToken = _configuration.CreateToken(principal.Claims.ToList());
+            var newRefreshToken = _configuration.GenerateRefreshToken();
+
+            user.RefreshToken = newRefreshToken;
+            await _userManager.UpdateAsync(user);
+
+            return Ok(new TokenModel { AccessToken = new JwtSecurityTokenHandler().WriteToken(newAccessToken), RefreshToken = newRefreshToken, });
         }
 
         [AllowAnonymous]
@@ -141,26 +196,18 @@ namespace StudentHelper.WebApi.Controllers
             return new Response(400, false, "Failed to reset password.");
         }
 
-
-        [HttpPost("Logout")]
-        public async Task<Response> Logout()
-        {
-            await _signInManager.SignOutAsync();
-            return new Response(200, true, "Logout completed");
-        }
-
-        [Authorize(Roles ="Admin, User")]
+        [Authorize(Roles ="Admin, User, Manager")]
         [HttpGet("GetCurrentUser")]
-        public async Task<UserResponse> GetCurrentUser()
+        public async Task<ActionResult<UserResponse>> GetCurrentUser()
         {
             var user = await _userManager.GetUserAsync(User);
             var roles = await _userManager.GetRolesAsync(user);
             
-            if (user == null)
+            if (!ModelState.IsValid)
             {
-                return new UserResponse(404, false, "Not Found!", "", "", 0, null);
+                return BadRequest(new Response(404, false, "Некорректный запрос!"));
             }
-            return new UserResponse(200, true, $"User info:", user.UserName, user.Email, user.Id, roles.ToList());
+            return new UserResponse(200, true, $"Вы успешно вывели текущего пользователя!", user.UserName, user.Email, user.Id, roles.ToList());
         }
 
         [HttpPost("ChangeCurrentPassword")]
@@ -173,25 +220,6 @@ namespace StudentHelper.WebApi.Controllers
                 return new Response(400, false, "Неудачная попытка смены пароля, перепроверьте введенные данные!");
             }
             return new Response(200, true, "Вы успешно сменили свой пароль, запомните его!");
-        }
-        private void SetUserProperties(User user, string email, string username)
-        {
-            user.UserName = username;
-            user.Email = email;
-        }
-        private async Task<IdentityResult> RegisterUser(RegisterRequest request)
-        {
-
-            var user = new User();
-
-            SetUserProperties(user, request.Email, request.UserName);
-
-            var result = await _userManager.CreateAsync(user, request.Password);
-            
-            var role = await _roleManager.CreateAsync(new IdentityRole<int> { Name="Admin"} );
-            await _userManager.AddToRoleAsync(user, "Admin");
-
-            return result;
         }
         private string GeneratePassword()
         {

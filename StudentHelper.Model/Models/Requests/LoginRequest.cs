@@ -10,8 +10,5 @@ namespace StudentHelper.Model.Models.Requests
         [Required]
         public string Password { get; set; }
 
-        [Required]
-        public bool RememberMe { get; set; }
-
     }
 }
