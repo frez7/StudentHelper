@@ -1,12 +1,19 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.CookiePolicy;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using StudentHelper.Model.Extensions;
 using StudentHelper.Model.Models.Configs;
 using StudentHelper.Model.Models.Entities;
 using StudentHelper.WebApi.Controllers;
 using StudentHelper.WebApi.Data;
 using StudentHelper.WebApi.Service;
 using System.Configuration;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton(provider =>
@@ -16,14 +23,15 @@ builder.Services.AddSingleton(provider =>
 builder.Services.AddDbContext<IdentityContext>();
 
 builder.Services.AddTransient<EmailService>();
+builder.Services.AddScoped<ITokenService, TokenService>();
 
 
-
-builder.Services.AddIdentity<User, Role>()
+builder.Services.AddIdentity<User, IdentityRole<int>>()
     .AddEntityFrameworkStores<IdentityContext>()
     .AddDefaultTokenProviders();
+builder.Services.AddScoped<RoleManager<IdentityRole<int>>>();
 
-
+    
 
 builder.Services.Configure<IdentityOptions>(options =>
 {
@@ -32,19 +40,9 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.Password.RequireUppercase = false;
     options.Password.RequiredLength = 6;
 });
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options =>
-{
-    options.Cookie.HttpOnly = true;
-    options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
-    options.LoginPath = "/api/account/login";
-    options.LogoutPath = "/api/account/logout";
-    options.AccessDeniedPath = "/api/account/accessdenied";
-});
+
 
 builder.Services.AddControllers();
-
-builder.Services.AddScoped<AuthController>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -55,30 +53,102 @@ builder.Services.AddSwaggerGen(options =>
         Title = "StudentHelper API",
         Description = "We don't have description))",
     });
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        In = ParameterLocation.Header,
+        Description = "Please enter a valid token",
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        BearerFormat = "JWT",
+        Scheme = "Bearer"
+    });
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[]{}
+        }
+    });
 });
-
-
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("CorsPolicy", 
+        builder =>
+    {
+        builder.AllowAnyOrigin()
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+builder.Services.AddAuthentication(opt => {
+    opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"]!,
+            ValidAudience = builder.Configuration["Jwt:Audience"]!,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"]!))
+        };
+    });
+builder.Services.AddAuthorization(options => options.DefaultPolicy =
+    new AuthorizationPolicyBuilder
+            (JwtBearerDefaults.AuthenticationScheme)
+        .RequireAuthenticatedUser()
+        .Build());
 var app = builder.Build();
-app.UseCors(builder => builder
-    .WithOrigins()
-    .AllowAnyHeader()
-    .AllowAnyMethod());
 
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "StudentHelper");
 });
+
+app.ConfigureExceptionHandler();
+
 app.UseHttpsRedirection();
+
+app.UseCors("CorsPolicy");
 
 app.UseAuthentication();
 
 app.UseAuthorization();
 
+
 app.MapControllers();
+
 
 app.Run();
 
+var host = Host.CreateDefaultBuilder(args).Build();
+var serviceProvider = host.Services;
+
+using (var scope = host.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        UserRoleInitializer.InitializeAsync(services).Wait();
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while attempting to seed the database");
+    }
+}
 Config? BindConfiguration(IServiceProvider provider)
 {
     var envName = builder.Environment.EnvironmentName;

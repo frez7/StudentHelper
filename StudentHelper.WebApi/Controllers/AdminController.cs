@@ -13,9 +13,9 @@ namespace StudentHelper.WebApi.Controllers
     public class AdminController : ControllerBase
     {
         private readonly UserManager<User> _userManager;
-        private readonly RoleManager<Role> _roleManager;
+        private readonly RoleManager<IdentityRole<int>> _roleManager;
 
-        public AdminController(UserManager<User> userManager, RoleManager<Role> roleManager)
+        public AdminController(UserManager<User> userManager, RoleManager<IdentityRole<int>> roleManager)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -34,7 +34,7 @@ namespace StudentHelper.WebApi.Controllers
             }
             catch (Exception)
             {
-                return new UserResponse(400, false, "User with this username, is not finded!", null, null, null, null);
+                return new UserResponse(400, false, "User with this username, is not finded!", null, null, 0, null);
                 throw;
             } 
             

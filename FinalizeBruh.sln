@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.33516.290
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StudentHelper.Model", "StudentHelper.Model\StudentHelper.Model.csproj", "{A59A2EB9-8539-4B91-97D4-3BBA8AC16ED0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StudentHelper.Model", "StudentHelper.Model\StudentHelper.Model.csproj", "{A59A2EB9-8539-4B91-97D4-3BBA8AC16ED0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StudentHelper.BL", "StudentHelper.BL\StudentHelper.BL.csproj", "{0941BDEA-2EB8-4D65-B1A8-9B9D0E30DA54}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StudentHelper.BL", "StudentHelper.BL\StudentHelper.BL.csproj", "{0941BDEA-2EB8-4D65-B1A8-9B9D0E30DA54}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StudentHelper.WebApi", "StudentHelper.WebApi\StudentHelper.WebApi.csproj", "{7FC27FFC-3859-494E-BC9F-672B35D606B6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StudentHelper.WebApi", "StudentHelper.WebApi\StudentHelper.WebApi.csproj", "{7FC27FFC-3859-494E-BC9F-672B35D606B6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

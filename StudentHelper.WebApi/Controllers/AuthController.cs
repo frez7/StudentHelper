@@ -5,6 +5,8 @@ using StudentHelper.Model.Models.Common;
 using StudentHelper.Model.Models.Configs;
 using StudentHelper.Model.Models.Entities;
 using StudentHelper.Model.Models.Requests;
+using StudentHelper.WebApi.Data;
+using StudentHelper.WebApi.Extensions;
 using StudentHelper.WebApi.Service;
 using System.Net;
 
@@ -17,32 +19,62 @@ namespace StudentHelper.WebApi.Controllers
     {
         private readonly SignInManager<User> _signInManager;
         private readonly UserManager<User> _userManager;
-        private readonly RoleManager<Role> _roleManager;
+        private readonly RoleManager<IdentityRole<int>> _roleManager;
         private readonly EmailService _emailService;
         private readonly SMTPConfig _config;
+        private readonly ITokenService _tokenService;
+        private readonly IConfiguration _configuration;
+        private readonly IdentityContext _context;
 
-        public AuthController(SignInManager<User> signInManager, UserManager<User> userManager, RoleManager<Role> roleManager, EmailService emailService, SMTPConfig config)
+        public AuthController(SignInManager<User> signInManager, UserManager<User> userManager, RoleManager<IdentityRole<int>> roleManager, EmailService emailService, SMTPConfig config, ITokenService tokenService, IConfiguration configuration, IdentityContext context)
         {
             _signInManager = signInManager;
             _userManager = userManager;
             _emailService = emailService;
             _config = config;
             _roleManager = roleManager;
-
+            _tokenService = tokenService;
+            _configuration = configuration;
+            _context = context;
         }
 
         [AllowAnonymous]
         [HttpPost("Login")]
-        public async Task<Response> Login(LoginRequest request)
+        public async Task<ActionResult<AuthResponse>> Login(LoginRequest request)
         {
-            var result = await _signInManager
-                .PasswordSignInAsync(request.UserName, request.Password, request.RememberMe, lockoutOnFailure: false);
-            if (result.Succeeded)
+            if (!ModelState.IsValid)
             {
-                return new Response(200, true, "User voshel v sistemu");
+                return BadRequest(ModelState);
             }
-            return new Response(400, false, "Invalid login attempt.");
+            var user = await _userManager.FindByNameAsync(request.UserName);
+            if (user == null)
+            {
+                return BadRequest(new Response(401, false, "Данный пользователь не существует!"));
+            }
+            var isPasswordValid = await _userManager.CheckPasswordAsync(user, request.Password);
+
+            if (!isPasswordValid)
+            {
+                return BadRequest(new Response(401, false, "Неверный пароль!"));
+            }
+
+            var identityRoles = new List<IdentityRole<int>>();
+            var roles = await _userManager.GetRolesAsync(user);
+
+            foreach (var roleName in roles)
+            {
+                var role = await _roleManager.FindByNameAsync(roleName);
+                identityRoles.Add(role);
+            }
+            var dbUser = _context.Users.FirstOrDefault(u => u.UserName == request.UserName);
+            var accessToken = _tokenService.CreateToken(user, identityRoles);
+            dbUser.RefreshToken = _configuration.GenerateRefreshToken();
+            dbUser.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(_configuration.GetSection("Jwt:RefreshTokenValidityInDays").Get<int>());
+            await _context.SaveChangesAsync();
+            return Ok(new AuthResponse(200, true, "Пользователь успешно вошел в систему!"
+                , accessToken, user.RefreshToken, user.UserName));
         }
+
 
         [AllowAnonymous]
         [HttpPost("Register")]
@@ -126,7 +158,7 @@ namespace StudentHelper.WebApi.Controllers
             
             if (user == null)
             {
-                return new UserResponse(404, false, "Not Found!", "", "", "", null);
+                return new UserResponse(404, false, "Not Found!", "", "", 0, null);
             }
             return new UserResponse(200, true, $"User info:", user.UserName, user.Email, user.Id, roles.ToList());
         }
@@ -151,12 +183,12 @@ namespace StudentHelper.WebApi.Controllers
         {
 
             var user = new User();
-            var role = new Role { Name = "Admin" };
-            await _roleManager.CreateAsync(role);
 
             SetUserProperties(user, request.Email, request.UserName);
 
             var result = await _userManager.CreateAsync(user, request.Password);
+            
+            var role = await _roleManager.CreateAsync(new IdentityRole<int> { Name="Admin"} );
             await _userManager.AddToRoleAsync(user, "Admin");
 
             return result;

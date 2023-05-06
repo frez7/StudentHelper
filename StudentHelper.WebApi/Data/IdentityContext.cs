@@ -5,14 +5,14 @@ using StudentHelper.Model.Models.Entities;
 
 namespace StudentHelper.WebApi.Data
 {
-    public class IdentityContext : IdentityDbContext<User, IdentityRole, string>
+    public class IdentityContext : IdentityDbContext<User, IdentityRole<int>, int>
     {
         public IdentityContext(DbContextOptions<IdentityContext> options)
         : base(options)
         {
 
         }
-        public DbSet<Role> Role { get; set; }
+        public DbSet<IdentityRole> Roles { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -35,8 +35,6 @@ namespace StudentHelper.WebApi.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-
-            modelBuilder.Entity<Role>().HasBaseType<IdentityRole>();
         }
     }
 }

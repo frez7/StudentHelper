@@ -11,9 +11,9 @@ namespace StudentHelper.Model.Models.Common
     {
         public string UserName { get; set; }
         public string Email { get; set; }
-        public string Id { get; set; }
+        public int Id { get; set; }
         public List<string> Roles { get; set; }
-        public UserResponse(int statusCode, bool success, string message, string username, string email, string id, List<string> roles) : base(statusCode, success, message)
+        public UserResponse(int statusCode, bool success, string message, string username, string email, int id, List<string> roles) : base(statusCode, success, message)
         {
             UserName = username;
             Email = email;
