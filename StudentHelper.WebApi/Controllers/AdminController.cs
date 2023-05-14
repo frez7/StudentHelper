@@ -12,10 +12,10 @@ namespace StudentHelper.WebApi.Controllers
     [Route("api/[controller]")]
     public class AdminController : ControllerBase
     {
-        private readonly UserManager<User> _userManager;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole<int>> _roleManager;
 
-        public AdminController(UserManager<User> userManager, RoleManager<IdentityRole<int>> roleManager)
+        public AdminController(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole<int>> roleManager)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -25,7 +25,7 @@ namespace StudentHelper.WebApi.Controllers
         [HttpPut("GetUserByUserName")]
         public async Task<UserResponse> GetUserByUserName(GetUserByNameRequest request)
         {
-            User user;
+            ApplicationUser user;
             IEnumerable<string> roles;
             try
             {

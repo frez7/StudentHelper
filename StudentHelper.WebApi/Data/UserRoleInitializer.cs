@@ -8,7 +8,7 @@ namespace StudentHelper.WebApi.Data
         public static async Task InitializeAsync(IServiceProvider serviceProvider)
         {
             var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole<int>>>();
-            var userManager = serviceProvider.GetRequiredService<UserManager<User>>();
+            var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
             string[] roleNames = { "Admin", "Manager", "User" };
             IdentityResult roleResult;
@@ -23,12 +23,12 @@ namespace StudentHelper.WebApi.Data
             }
 
             var email = "admin@mail.ru";
-            var password = "Qwerty123!";
-            var username = "admin";
+            var password = "qwerty";
+            var username = "qwerty";
 
             if (userManager.FindByEmailAsync(email).Result == null)
             {
-                User user = new User
+                ApplicationUser user = new ApplicationUser
                 {
                     Email = email,
                     UserName = username,

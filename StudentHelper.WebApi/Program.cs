@@ -4,11 +4,16 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.CookiePolicy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using StudentHelper.Model.Data;
+using StudentHelper.Model.Data.Repository;
 using StudentHelper.Model.Extensions;
 using StudentHelper.Model.Models.Configs;
 using StudentHelper.Model.Models.Entities;
+using StudentHelper.Model.Models.Entities.CourseEntities;
+using StudentHelper.Model.Models.Entities.SellerEntities;
 using StudentHelper.WebApi.Controllers;
 using StudentHelper.WebApi.Data;
 using StudentHelper.WebApi.Service;
@@ -21,12 +26,19 @@ builder.Services.AddSingleton(provider =>
 
 
 builder.Services.AddDbContext<IdentityContext>();
+builder.Services.AddDbContext<CourseContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("StudentHelperDatabase"),
+        b => b.MigrationsAssembly("StudentHelper.WebApi")));
+
 
 builder.Services.AddTransient<EmailService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddTransient<IRepository<Student>, Repository<Student>>();
+builder.Services.AddTransient<IRepository<Course>, Repository<Course>>();
+builder.Services.AddTransient<IRepository<SellerApplication>, Repository<SellerApplication>>();
+builder.Services.AddTransient<IRepository<Seller>, Repository<Seller>>();
 
-
-builder.Services.AddIdentity<User, IdentityRole<int>>()
+builder.Services.AddIdentity<ApplicationUser, IdentityRole<int>>()
     .AddEntityFrameworkStores<IdentityContext>()
     .AddDefaultTokenProviders();
 builder.Services.AddScoped<RoleManager<IdentityRole<int>>>();
@@ -38,7 +50,8 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.Password.RequireDigit = false;
     options.Password.RequireLowercase = false;
     options.Password.RequireUppercase = false;
-    options.Password.RequiredLength = 6;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequiredLength = 5;
 });
 
 

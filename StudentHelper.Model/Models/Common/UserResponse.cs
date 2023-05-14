@@ -1,10 +1,4 @@
-﻿using StudentHelper.Model.Models.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 namespace StudentHelper.Model.Models.Common
 {
     public class UserResponse : Response

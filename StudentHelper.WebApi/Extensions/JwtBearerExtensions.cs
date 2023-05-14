@@ -11,7 +11,7 @@ namespace StudentHelper.WebApi.Extensions
 {
     public static class JwtBearerExtensions
     {
-        public static List<Claim> CreateClaims(this User user, List<IdentityRole<int>> roles)
+        public static List<Claim> CreateClaims(this ApplicationUser user, List<IdentityRole<int>> roles)
         {
             var claims = new List<Claim>
         {

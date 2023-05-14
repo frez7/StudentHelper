@@ -5,14 +5,13 @@ using StudentHelper.Model.Models.Entities;
 
 namespace StudentHelper.WebApi.Data
 {
-    public class IdentityContext : IdentityDbContext<User, IdentityRole<int>, int>
+    public class IdentityContext : IdentityDbContext<ApplicationUser, IdentityRole<int>, int>
     {
         public IdentityContext(DbContextOptions<IdentityContext> options)
         : base(options)
         {
 
         }
-        public DbSet<IdentityRole> Roles { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -22,9 +21,9 @@ namespace StudentHelper.WebApi.Data
                 .AddJsonFile("appsettings.json")
                 .Build();
 
-            var connectionString = config.GetConnectionString("IdentityDbContextConnection")
+            var connectionString = config.GetConnectionString("StudentHelperDatabase")
                 ?? throw new InvalidOperationException(
-                    "Connection string 'IdentityDbContextConnection' not found.");
+                    "Connection string 'StudentHelperDatabase' not found.");
 
             optionsBuilder.UseSqlServer(connectionString, builder =>
             {

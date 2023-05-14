@@ -13,7 +13,7 @@ namespace StudentHelper.WebApi.Service
         {
             _configuration = configuration;
         }
-        public string CreateToken(User user, List<IdentityRole<int>> roles)
+        public string CreateToken(ApplicationUser user, List<IdentityRole<int>> roles)
         {
             var token = user
             .CreateClaims(roles)

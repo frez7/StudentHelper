@@ -2,10 +2,12 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using StudentHelper.Model.Data.Repository;
 using StudentHelper.Model.Models;
 using StudentHelper.Model.Models.Common;
 using StudentHelper.Model.Models.Configs;
 using StudentHelper.Model.Models.Entities;
+using StudentHelper.Model.Models.Entities.CourseEntities;
 using StudentHelper.Model.Models.Requests;
 using StudentHelper.WebApi.Data;
 using StudentHelper.WebApi.Extensions;
@@ -20,15 +22,16 @@ namespace StudentHelper.WebApi.Controllers
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
-        private readonly SignInManager<User> _signInManager;
-        private readonly UserManager<User> _userManager;
+        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole<int>> _roleManager;
         private readonly EmailService _emailService;
         private readonly SMTPConfig _config;
         private readonly ITokenService _tokenService;
         private readonly IConfiguration _configuration;
+        private readonly IRepository<Student> _repository;
 
-        public AuthController(SignInManager<User> signInManager, UserManager<User> userManager, RoleManager<IdentityRole<int>> roleManager, EmailService emailService, SMTPConfig config, ITokenService tokenService, IConfiguration configuration)
+        public AuthController(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole<int>> roleManager, EmailService emailService, SMTPConfig config, ITokenService tokenService, IConfiguration configuration, IRepository<Student> repository)
         {
             _signInManager = signInManager;
             _userManager = userManager;
@@ -37,6 +40,7 @@ namespace StudentHelper.WebApi.Controllers
             _roleManager = roleManager;
             _tokenService = tokenService;
             _configuration = configuration;
+            _repository = repository;
         }
 
         [AllowAnonymous]
@@ -83,12 +87,16 @@ namespace StudentHelper.WebApi.Controllers
             if (!ModelState.IsValid) 
                 return BadRequest(ModelState);
 
-            var user = new User
+            var user = new ApplicationUser
             {
                 UserName = request.UserName,
                 Email = request.Email,
             };
-
+            var existingUser = await _userManager.FindByEmailAsync(request.Email);
+            if (existingUser != null)
+            {
+                return BadRequest(new Response(400, false, "Пользователь с такой почтой уже зарегистрирован!"));
+            }
             var result = await _userManager.CreateAsync(user, request.Password);
 
             foreach (var error in result.Errors)
@@ -101,8 +109,10 @@ namespace StudentHelper.WebApi.Controllers
 
 
             var role = new IdentityRole<int> { Name = "User" };
+            var student = new Student { UserId = user.Id };
             await _roleManager.CreateAsync(role);
             await _userManager.AddToRoleAsync(user, "User");
+            await _repository.AddAsync(student);
 
             return await Authenticate(new LoginRequest
             {
@@ -196,7 +206,6 @@ namespace StudentHelper.WebApi.Controllers
             return new Response(400, false, "Failed to reset password.");
         }
 
-        [Authorize(Roles ="Admin, User, Manager")]
         [HttpGet("GetCurrentUser")]
         public async Task<ActionResult<UserResponse>> GetCurrentUser()
         {
