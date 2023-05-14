@@ -11,6 +11,8 @@ namespace StudentHelper.Model.Data.Repository
         Task<T> AddAsync(T entity);
         Task UpdateAsync(T entity);
         Task DeleteAsync(int id);
-        Task<SellerApplication> GetByUserId(int userId);
+        Task RemoveAsync(T entity);
+        Task<T> GetByUserId(int userId);
+        Task<T> FindManyToMany(int firstId, int secondId);
     }
 }
