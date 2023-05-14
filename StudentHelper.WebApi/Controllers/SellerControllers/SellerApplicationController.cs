@@ -117,21 +117,21 @@ namespace StudentHelper.WebApi.Controllers.SellerControllers
             return new Response(200, true, "Вы успешно подтвердили заявку на продавца!");
         }
 
-        //[Authorize(Roles = "Moderator")]
-        //[HttpPost("{id}/reject")]
-        //public async Task<IActionResult> Reject(int id)
-        //{
-        //    var sellerApplication = await _context.SellerApplications.FindAsync(id);
+        [Authorize(Roles = "Manager, Admin, User")]
+        [HttpPost("{id}/reject")]
+        public async Task<Response> Reject(int id)
+        {
+            var sellerApplication = await _sellerAppRepository.GetByIdAsync(id);
 
-        //    if (sellerApplication == null)
-        //    {
-        //        return NotFound();
-        //    }
+            if (sellerApplication == null)
+            {
+                return new Response(400, false, "Заявка с таким id не найдена!");
+            }
 
-        //    sellerApplication.IsApproved = false;
-        //    await _context.SaveChangesAsync();
+            sellerApplication.Status = SellerApplicationStatus.Rejected;
+            await _sellerAppRepository.UpdateAsync(sellerApplication);
 
-        //    return Ok(new { message = "Application rejected" });
-        //}
+            return new Response(200, true, "Вы успешно отказали!");
+        }
     }
 }
