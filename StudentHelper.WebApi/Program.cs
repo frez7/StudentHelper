@@ -37,6 +37,7 @@ builder.Services.AddTransient<IRepository<Student>, Repository<Student>>();
 builder.Services.AddTransient<IRepository<Course>, Repository<Course>>();
 builder.Services.AddTransient<IRepository<SellerApplication>, Repository<SellerApplication>>();
 builder.Services.AddTransient<IRepository<Seller>, Repository<Seller>>();
+builder.Services.AddTransient<IRepository<StudentCourse>, Repository<StudentCourse>>();
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole<int>>()
     .AddEntityFrameworkStores<IdentityContext>()
