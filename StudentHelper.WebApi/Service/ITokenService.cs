@@ -5,6 +5,6 @@ namespace StudentHelper.WebApi.Service
 {
     public interface ITokenService
     {
-        string CreateToken(User user, List<IdentityRole<int>> role);
+        string CreateToken(ApplicationUser user, List<IdentityRole<int>> role);
     }
 }
