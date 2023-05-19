@@ -32,6 +32,12 @@ namespace StudentHelper.WebApi.Controllers.SellerControllers
             _emailService = emailService;
             _config = config;
         }
+        [HttpGet("seller-app/{applicationId}")]
+        public async Task<SellerApplication> GetById(int applicationId)
+        {
+            var sellerApp = await _sellerAppRepository.GetByIdAsync(applicationId);
+            return sellerApp;
+        }
         [HttpPost("create-seller-application")]
         public async Task<Response> CreateSellerApplication(SellerApplicationRequest request)
         {

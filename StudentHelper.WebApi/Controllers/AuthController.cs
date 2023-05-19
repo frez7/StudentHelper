@@ -211,12 +211,14 @@ namespace StudentHelper.WebApi.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
             var roles = await _userManager.GetRolesAsync(user);
+            var student = await _repository.GetByUserId(user.Id);
+            int studentId = student.Id;
             
             if (!ModelState.IsValid)
             {
                 return BadRequest(new Response(404, false, "Некорректный запрос!"));
             }
-            return new UserResponse(200, true, $"Вы успешно вывели текущего пользователя!", user.UserName, user.Email, user.Id, roles.ToList());
+            return new UserResponse(200, true, $"Вы успешно вывели текущего пользователя!", user.UserName, user.Email, user.Id, roles.ToList(), studentId);
         }
 
         [HttpPost("ChangeCurrentPassword")]
