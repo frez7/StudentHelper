@@ -1,5 +1,6 @@
 ﻿
 using StudentHelper.Model.Models.Common;
+using StudentHelper.Model.Models.Entities.CourseEntities;
 using StudentHelper.Model.Models.Entities.SellerEntities;
 
 namespace StudentHelper.Model.Data.Repository
@@ -14,5 +15,6 @@ namespace StudentHelper.Model.Data.Repository
         Task RemoveAsync(T entity);
         Task<T> GetByUserId(int userId);
         Task<T> FindManyToMany(int firstId, int secondId);
+        Task<List<StudentCourse>> GetCoursesByStudentId(int studentId);
     }
 }

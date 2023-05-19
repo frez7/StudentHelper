@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using StudentHelper.Model.Data;
 using StudentHelper.Model.Data.Repository;
 using StudentHelper.Model.Models.Common;
 using StudentHelper.Model.Models.Entities.CourseEntities;
@@ -19,13 +20,15 @@ namespace StudentHelper.WebApi.Controllers.CourseControllers
         private readonly IRepository<Student> _studentRepository;
         private readonly IRepository<Seller> _sellerRepository;
         private readonly IRepository<StudentCourse> _studentCourseRepository;
+        private readonly CourseContext _context;
 
-        public CourseController(IRepository<Course> courseRepository, IRepository<Seller> sellerRepository, IRepository<Student> studentRepository, IRepository<StudentCourse> studentCourseRepository)
+        public CourseController(IRepository<Course> courseRepository, IRepository<Seller> sellerRepository, IRepository<Student> studentRepository, IRepository<StudentCourse> studentCourseRepository, CourseContext context)
         {
             _courseRepository = courseRepository;
             _sellerRepository = sellerRepository;
             _studentRepository = studentRepository;
             _studentCourseRepository = studentCourseRepository;
+            _context = context;
         }
         [HttpPost("create-course")]
         public async Task<Response> CreateCourse(CreateCourseRequest request)
@@ -111,13 +114,28 @@ namespace StudentHelper.WebApi.Controllers.CourseControllers
             return new Response(200, true, "Вы успешно удалили данный курс у студента!");
 
         }
-        //[HttpPost("get-all-student-courses")]
-        //public async Task<List<StudentCourse>> GetAllStudentCourses(int studentId)
-        //{
-        //    var student = await _studentRepository.GetByIdAsync(studentId);
-        //    var courses = ;
-        //    return courses;
-        //}
 
+        [HttpPost("students/{studentId}/courses")]
+        public async Task<List<Course>> GetAllStudentCourses(int studentId)
+        {
+            var sortedCourseIds = _context.StudentCourses
+                .Where(sc => sc.StudentId == studentId)
+                .OrderBy(sc => sc.StudentId)
+                .Select(sc => sc.CourseId)
+                .ToList();
+            var courses = new List<Course>();
+            for (int i = 0; i < sortedCourseIds.Count; i++)
+            {
+                var course = await _courseRepository.GetByIdAsync(sortedCourseIds[i]);
+                courses.Add(course);
+            }
+            return courses;
+        }
+        [HttpPost("courses")]
+        public async Task<List<Course>> GetAllCourses()
+        {
+            var courses = await _courseRepository.GetAllAsync();
+            return courses.ToList();
+        }
     }
 }

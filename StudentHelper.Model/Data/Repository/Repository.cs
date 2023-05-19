@@ -80,5 +80,11 @@ namespace StudentHelper.Model.Data.Repository
             _dbSet.Remove(entity);
             await _context.SaveChangesAsync();
         }
+
+        public async Task<List<StudentCourse>> GetCoursesByStudentId(int studentId)
+        {
+            var items = _context.StudentCourses.Where(i => i.StudentId == studentId).ToList();
+            return items;
+        }
     }
 }
