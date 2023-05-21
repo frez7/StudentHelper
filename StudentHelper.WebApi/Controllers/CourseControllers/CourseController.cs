@@ -1,6 +1,7 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using StudentHelper.Model.Data;
 using StudentHelper.Model.Data.Repository;
 using StudentHelper.Model.Models;
@@ -29,6 +30,8 @@ namespace StudentHelper.WebApi.Controllers.CourseControllers
         public CourseController(IRepository<Course> courseRepository, IRepository<Seller> sellerRepository
             , IRepository<Student> studentRepository, IRepository<StudentCourse> studentCourseRepository
             , CourseContext context, UserManager<ApplicationUser> userManager)
+
+        public CourseController(IRepository<Course> courseRepository, IRepository<Seller> sellerRepository, IRepository<Student> studentRepository, IRepository<StudentCourse> studentCourseRepository, CourseContext context)
         {
             _courseRepository = courseRepository;
             _sellerRepository = sellerRepository;
@@ -121,6 +124,7 @@ namespace StudentHelper.WebApi.Controllers.CourseControllers
             return new Response(200, true, "Вы успешно удалили данный курс у студента!");
 
         }
+        
         [HttpGet("courses/{courseId}/students")]
         public async Task<List<ApplicationUserDTO>> GetAllCourseStudents(int courseId)
         {
@@ -164,6 +168,7 @@ namespace StudentHelper.WebApi.Controllers.CourseControllers
             }
             return courses;
         }
+        
         [HttpGet("courses")]
         public async Task<List<Course>> GetAllCourses()
         {
