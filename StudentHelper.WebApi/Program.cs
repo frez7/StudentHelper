@@ -32,6 +32,7 @@ builder.Services.AddDbContext<CourseContext>(options =>
 
 
 builder.Services.AddTransient<EmailService>();
+builder.Services.AddScoped<HttpClient>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddTransient<IRepository<Student>, Repository<Student>>();
 builder.Services.AddTransient<IRepository<Course>, Repository<Course>>();

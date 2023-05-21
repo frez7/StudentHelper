@@ -221,6 +221,13 @@ namespace StudentHelper.WebApi.Controllers
             return new UserResponse(200, true, $"Вы успешно вывели текущего пользователя!", user.UserName, user.Email, user.Id, roles.ToList(), studentId);
         }
 
+        [HttpGet("users/{userId}")]
+        public async Task<ApplicationUser> GetUserById(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            return user;
+        } 
+
         [HttpPost("ChangeCurrentPassword")]
         public async Task<Response> ChangeCurrentPassword(ChangePasswordRequest request)
         {

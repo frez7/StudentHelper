@@ -27,6 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\StudentHelper.BL\StudentHelper.BL.csproj" />
     <ProjectReference Include="..\StudentHelper.Model\StudentHelper.Model.csproj" />
   </ItemGroup>
 

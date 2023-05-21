@@ -14,5 +14,6 @@ namespace StudentHelper.Model.Models.Entities.CourseEntities
         public Seller Seller { get; set; }
         public int SellerId { get; set; }
         public List<StudentCourse> Students { get; set; }
+        public List<Page> Pages { get; set; }
     }
 }
