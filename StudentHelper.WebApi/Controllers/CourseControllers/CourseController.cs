@@ -27,11 +27,7 @@ namespace StudentHelper.WebApi.Controllers.CourseControllers
         private readonly CourseContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public CourseController(IRepository<Course> courseRepository, IRepository<Seller> sellerRepository
-            , IRepository<Student> studentRepository, IRepository<StudentCourse> studentCourseRepository
-            , CourseContext context, UserManager<ApplicationUser> userManager)
-
-        public CourseController(IRepository<Course> courseRepository, IRepository<Seller> sellerRepository, IRepository<Student> studentRepository, IRepository<StudentCourse> studentCourseRepository, CourseContext context)
+        public CourseController(IRepository<Course> courseRepository, IRepository<Seller> sellerRepository, IRepository<Student> studentRepository, IRepository<StudentCourse> studentCourseRepository, CourseContext context, UserManager<ApplicationUser> userManager)
         {
             _courseRepository = courseRepository;
             _sellerRepository = sellerRepository;
