@@ -1,13 +1,16 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using StudentHelper.Model.Data;
 using StudentHelper.Model.Data.Repository;
+using StudentHelper.Model.Models;
 using StudentHelper.Model.Models.Common;
+using StudentHelper.Model.Models.Entities;
 using StudentHelper.Model.Models.Entities.CourseEntities;
 using StudentHelper.Model.Models.Entities.SellerEntities;
 using StudentHelper.Model.Models.Requests.CourseRequests;
 using System.Security.Claims;
+
 
 namespace StudentHelper.WebApi.Controllers.CourseControllers
 {
@@ -21,14 +24,18 @@ namespace StudentHelper.WebApi.Controllers.CourseControllers
         private readonly IRepository<Seller> _sellerRepository;
         private readonly IRepository<StudentCourse> _studentCourseRepository;
         private readonly CourseContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public CourseController(IRepository<Course> courseRepository, IRepository<Seller> sellerRepository, IRepository<Student> studentRepository, IRepository<StudentCourse> studentCourseRepository, CourseContext context)
+        public CourseController(IRepository<Course> courseRepository, IRepository<Seller> sellerRepository
+            , IRepository<Student> studentRepository, IRepository<StudentCourse> studentCourseRepository
+            , CourseContext context, UserManager<ApplicationUser> userManager)
         {
             _courseRepository = courseRepository;
             _sellerRepository = sellerRepository;
             _studentRepository = studentRepository;
             _studentCourseRepository = studentCourseRepository;
             _context = context;
+            _userManager = userManager;
         }
         [HttpPost("create-course")]
         public async Task<Response> CreateCourse(CreateCourseRequest request)
@@ -114,8 +121,34 @@ namespace StudentHelper.WebApi.Controllers.CourseControllers
             return new Response(200, true, "Вы успешно удалили данный курс у студента!");
 
         }
+        [HttpGet("courses/{courseId}/students")]
+        public async Task<List<ApplicationUserDTO>> GetAllCourseStudents(int courseId)
+        {
+            var sortedStudentIds = _context.StudentCourses
+                .Where(sc => sc.CourseId == courseId)
+                .OrderBy(sc => sc.CourseId)
+                .Select(sc => sc.StudentId)
+                .ToList();
+            var normalizedUsers = new List<ApplicationUserDTO>();
+            for (int i = 0; i < sortedStudentIds.Count; i++)
+            {
+                var student = await _studentRepository.GetByIdAsync(sortedStudentIds[i]);
+                var stringId = student.UserId.ToString();
+                var user = await _userManager.FindByIdAsync(stringId);
+                var normalizedUser = new ApplicationUserDTO
+                {
+                    UserName = user.UserName,
+                    Id = user.Id,
+                    StudentId = student.Id,
+                    Email = user.Email
+                };
+                normalizedUsers.Add(normalizedUser);
 
-        [HttpPost("students/{studentId}/courses")]
+            }
+            return normalizedUsers;
+        }
+
+        [HttpGet("students/{studentId}/courses")]
         public async Task<List<Course>> GetAllStudentCourses(int studentId)
         {
             var sortedCourseIds = _context.StudentCourses
@@ -131,7 +164,7 @@ namespace StudentHelper.WebApi.Controllers.CourseControllers
             }
             return courses;
         }
-        [HttpPost("courses")]
+        [HttpGet("courses")]
         public async Task<List<Course>> GetAllCourses()
         {
             var courses = await _courseRepository.GetAllAsync();

@@ -14,6 +14,11 @@ namespace StudentHelper.Model.Data
         public DbSet<Course> Courses { get; set; }
         public DbSet<StudentCourse> StudentCourses { get; set; }
         public DbSet<SellerApplication> SellerApplications { get; set; }
+        public DbSet<Page> Pages { get; set; }
+        public DbSet<VideoLesson> VideoLessons { get; set; }
+        public DbSet<Test> Tests { get; set; }
+        public DbSet<Question> Questions { get; set; }
+        public DbSet<Answer> Answers { get; set; }
 
         public CourseContext(DbContextOptions<CourseContext> options)
         : base(options)
@@ -58,6 +63,36 @@ namespace StudentHelper.Model.Data
                 .HasOne(uc => uc.Course)
                 .WithMany(c => c.Students)
                 .HasForeignKey(uc => uc.CourseId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Course>()
+                .HasMany(c => c.Pages)
+                .WithOne(p => p.Course)
+                .HasForeignKey(p => p.CourseId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Page>()
+                .HasMany(p => p.VideoLessons)
+                .WithOne(v => v.Page)
+                .HasForeignKey(v => v.PageId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Page>()
+                .HasMany(p => p.Tests)
+                .WithOne(t => t.Page)
+                .HasForeignKey(t => t.PageId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Test>()
+                .HasMany(t => t.Questions)
+                .WithOne(q => q.Test)
+                .HasForeignKey(q => q.TestId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Question>()
+                .HasMany(q => q.Answers)
+                .WithOne(a => a.Question)
+                .HasForeignKey(a => a.QuestionId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }
