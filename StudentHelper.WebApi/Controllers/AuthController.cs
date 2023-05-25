@@ -8,6 +8,7 @@ using StudentHelper.Model.Models.Common;
 using StudentHelper.Model.Models.Configs;
 using StudentHelper.Model.Models.Entities;
 using StudentHelper.Model.Models.Entities.CourseEntities;
+using StudentHelper.Model.Models.Entities.SellerEntities;
 using StudentHelper.Model.Models.Requests;
 using StudentHelper.WebApi.Data;
 using StudentHelper.WebApi.Extensions;
@@ -30,8 +31,9 @@ namespace StudentHelper.WebApi.Controllers
         private readonly ITokenService _tokenService;
         private readonly IConfiguration _configuration;
         private readonly IRepository<Student> _repository;
+        private readonly IRepository<Seller> _sellerRepository;
 
-        public AuthController(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole<int>> roleManager, EmailService emailService, SMTPConfig config, ITokenService tokenService, IConfiguration configuration, IRepository<Student> repository)
+        public AuthController(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole<int>> roleManager, EmailService emailService, SMTPConfig config, ITokenService tokenService, IConfiguration configuration, IRepository<Student> repository, IRepository<Seller> sellerRepository)
         {
             _signInManager = signInManager;
             _userManager = userManager;
@@ -41,6 +43,7 @@ namespace StudentHelper.WebApi.Controllers
             _tokenService = tokenService;
             _configuration = configuration;
             _repository = repository;
+            _sellerRepository = sellerRepository;
         }
 
         [AllowAnonymous]
@@ -212,13 +215,22 @@ namespace StudentHelper.WebApi.Controllers
             var user = await _userManager.GetUserAsync(User);
             var roles = await _userManager.GetRolesAsync(user);
             var student = await _repository.GetByUserId(user.Id);
+            var seller = await _sellerRepository.GetByUserId(user.Id);
             int studentId = student.Id;
+            if (seller == null)
+            {
+                return new UserResponse(200, true, "Вы успешно вывели текущего пользователя!", user.UserName, user.Email, user.Id, roles.ToList(), studentId, user.IsSeller, 0);
+            }
+            int sellerId = seller.Id;
+
+            
+            
             
             if (!ModelState.IsValid)
             {
                 return BadRequest(new Response(404, false, "Некорректный запрос!"));
             }
-            return new UserResponse(200, true, $"Вы успешно вывели текущего пользователя!", user.UserName, user.Email, user.Id, roles.ToList(), studentId);
+            return new UserResponse(200, true, $"Вы успешно вывели текущего пользователя!", user.UserName, user.Email, user.Id, roles.ToList(), studentId, user.IsSeller, sellerId);
         }
 
         [HttpGet("users/{userId}")]

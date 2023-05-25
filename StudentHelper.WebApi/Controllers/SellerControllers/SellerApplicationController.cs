@@ -1,11 +1,13 @@
 ﻿
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StudentHelper.Model.Data.Repository;
 using StudentHelper.Model.Enums;
 using StudentHelper.Model.Models.Common;
 using StudentHelper.Model.Models.Configs;
+using StudentHelper.Model.Models.Entities;
 using StudentHelper.Model.Models.Entities.CourseEntities;
 using StudentHelper.Model.Models.Entities.SellerEntities;
 using StudentHelper.Model.Models.Requests;
@@ -24,11 +26,13 @@ namespace StudentHelper.WebApi.Controllers.SellerControllers
         private readonly IRepository<Seller> _sellerRepository;
         private readonly EmailService _emailService;
         private readonly SMTPConfig _config;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public SellerApplicationController(IRepository<SellerApplication> sellerAppRepository, IRepository<Seller> sellerRepository, EmailService emailService, SMTPConfig config)
+        public SellerApplicationController(IRepository<SellerApplication> sellerAppRepository, IRepository<Seller> sellerRepository, EmailService emailService, SMTPConfig config, UserManager<ApplicationUser> userManager)
         {
             _sellerAppRepository = sellerAppRepository;
             _sellerRepository = sellerRepository;
+            _userManager = userManager;
             _emailService = emailService;
             _config = config;
         }
@@ -98,9 +102,16 @@ namespace StudentHelper.WebApi.Controllers.SellerControllers
             {
                 return new Response(404, false, "Заявка не найдена!");
             }
+            if (sellerApplication.Status == SellerApplicationStatus.Approved)
+            {
+                return new Response(400, false, "Данная заявка уже подтверждена!");
+            }
 
             sellerApplication.Status = SellerApplicationStatus.Approved;
             await _sellerAppRepository.UpdateAsync(sellerApplication);
+            var user = await _userManager.FindByIdAsync($"{sellerApplication.UserId}");
+            user.IsSeller = true;
+            await _userManager.UpdateAsync(user);
             var seller = new Seller
             {
                 UserId = sellerApplication.UserId,

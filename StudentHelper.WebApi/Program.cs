@@ -39,6 +39,7 @@ builder.Services.AddTransient<IRepository<Course>, Repository<Course>>();
 builder.Services.AddTransient<IRepository<SellerApplication>, Repository<SellerApplication>>();
 builder.Services.AddTransient<IRepository<Seller>, Repository<Seller>>();
 builder.Services.AddTransient<IRepository<StudentCourse>, Repository<StudentCourse>>();
+builder.Services.AddTransient<IRepository<Page>, Repository<Page>>();
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole<int>>()
     .AddEntityFrameworkStores<IdentityContext>()
@@ -119,11 +120,15 @@ builder.Services.AddAuthentication(opt => {
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"]!))
         };
     });
-builder.Services.AddAuthorization(options => options.DefaultPolicy =
+builder.Services.AddAuthorization(options =>
+{
+    options.DefaultPolicy =
     new AuthorizationPolicyBuilder
             (JwtBearerDefaults.AuthenticationScheme)
         .RequireAuthenticatedUser()
-        .Build());
+        .Build();
+});
+
 var app = builder.Build();
 
 app.UseSwagger();
