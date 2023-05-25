@@ -37,7 +37,7 @@ namespace StudentHelper.WebApi.Controllers.CourseControllers
             _userManager = userManager;
         }
         [HttpPost("create-course")]
-        public async Task<Response> CreateCourse(CreateCourseRequest request)
+        public async Task<Response> CreateCourse([FromBody]CreateCourseRequest request)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             int.TryParse(userId, out var id);
@@ -68,6 +68,49 @@ namespace StudentHelper.WebApi.Controllers.CourseControllers
                 return new Response(404, false, "Курс не найден!");
             }
             return new Response(200, true, $"{course.Title}");
+        }
+        [HttpPut("courses/{id}/image")]
+        public async Task<Response> AddCourseImage(int id, byte[] image)
+        {
+            var course = await _courseRepository.GetByIdAsync(id);
+            if (course == null)
+            {
+                return new Response(404, false, "Not Found!");
+            }
+            course.Image = image;
+            await _courseRepository.UpdateAsync(course);
+            return new Response(200, true, "Изображение обновлено!");
+        }
+        [HttpPut("courses/{id}")]
+        public async Task<Response> UpdateCourse(int id, [FromQuery] CreateCourseRequest courseQuery)
+        {
+            var course = await _courseRepository.GetByIdAsync(id);
+            var user = await _userManager.GetUserAsync(User);
+            var roles = await _userManager.GetRolesAsync(user);
+            var seller = await _sellerRepository.GetByIdAsync(course.SellerId);
+            if (seller == null)
+            {
+                return new Response(400, false, "Вы не можете изменить данный курс!!!");
+            }
+            else if (seller.UserId != user.Id || roles.Contains("Admin"))
+            {
+                return new Response(400, false, "Вы не можете изменить данный курс!");
+            }
+            else if (course == null)
+            {
+                return new Response(404, false, "Not Found!");
+            }
+            else
+            {
+                course.IsFree = courseQuery.IsFree;
+                course.Description = courseQuery.Description;
+                course.Title = courseQuery.Title;
+                course.Price = courseQuery.Price;
+
+                await _courseRepository.UpdateAsync(course);
+                return new Response(200, true, "Курс успешно обновлен!");
+            }
+            
         }
         [HttpDelete("delete-course/{id}")]
         public async Task<Response> DeleteCourse(int id)

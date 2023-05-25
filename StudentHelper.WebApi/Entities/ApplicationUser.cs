@@ -8,6 +8,7 @@ namespace StudentHelper.Model.Models.Entities
     {
         public string? RefreshToken { get; set; }
         public DateTime RefreshTokenExpiryTime { get; set; }
+        public bool IsSeller { get; set; } = false;
 
     }
 }
