@@ -84,7 +84,6 @@ namespace StudentHelper.WebApi.Controllers.SellerControllers
             return new SellerApplicationResponse(200, true, "Заявка найдена!", sellerApplication.Status.ToString());
         }
 
-        [Authorize(Roles = "Manager, Admin, User")]
         [HttpGet("get-all-applications")]
         public async Task<List<SellerApplication>> GetAllSellerApplications()
         {
@@ -92,7 +91,6 @@ namespace StudentHelper.WebApi.Controllers.SellerControllers
             return sellerApplications.ToList();
         }
 
-        [Authorize(Roles = "Manager, Admin, User")]
         [HttpPost("{id}/approve")]
         public async Task<Response> Approve(int id)
         {
@@ -134,7 +132,6 @@ namespace StudentHelper.WebApi.Controllers.SellerControllers
             return new Response(200, true, "Вы успешно подтвердили заявку на продавца!");
         }
 
-        [Authorize(Roles = "Manager, Admin, User")]
         [HttpPost("{id}/reject")]
         public async Task<Response> Reject(int id)
         {

@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using StudentHelper.BL.Services.CourseServices;
 using StudentHelper.Model.Data;
 using StudentHelper.Model.Data.Repository;
 using StudentHelper.Model.Extensions;
@@ -40,6 +41,7 @@ builder.Services.AddTransient<IRepository<SellerApplication>, Repository<SellerA
 builder.Services.AddTransient<IRepository<Seller>, Repository<Seller>>();
 builder.Services.AddTransient<IRepository<StudentCourse>, Repository<StudentCourse>>();
 builder.Services.AddTransient<IRepository<Page>, Repository<Page>>();
+builder.Services.AddTransient<PageService>();
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole<int>>()
     .AddEntityFrameworkStores<IdentityContext>()

@@ -2,11 +2,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using StudentHelper.BL.Services.CourseServices;
 using StudentHelper.Model.Data;
 using StudentHelper.Model.Data.Repository;
 using StudentHelper.Model.Models;
 using StudentHelper.Model.Models.Common;
 using StudentHelper.Model.Models.Entities;
+using StudentHelper.Model.Models.Entities.CourseDTOs;
 using StudentHelper.Model.Models.Entities.CourseEntities;
 using StudentHelper.Model.Models.Entities.SellerEntities;
 using StudentHelper.Model.Models.Requests.CourseRequests;
@@ -26,8 +28,9 @@ namespace StudentHelper.WebApi.Controllers.CourseControllers
         private readonly IRepository<StudentCourse> _studentCourseRepository;
         private readonly CourseContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly PageService _pageService;
 
-        public CourseController(IRepository<Course> courseRepository, IRepository<Seller> sellerRepository, IRepository<Student> studentRepository, IRepository<StudentCourse> studentCourseRepository, CourseContext context, UserManager<ApplicationUser> userManager)
+        public CourseController(IRepository<Course> courseRepository, IRepository<Seller> sellerRepository, IRepository<Student> studentRepository, IRepository<StudentCourse> studentCourseRepository, CourseContext context, UserManager<ApplicationUser> userManager, PageService pageService)
         {
             _courseRepository = courseRepository;
             _sellerRepository = sellerRepository;
@@ -35,6 +38,7 @@ namespace StudentHelper.WebApi.Controllers.CourseControllers
             _studentCourseRepository = studentCourseRepository;
             _context = context;
             _userManager = userManager;
+            _pageService = pageService;
         }
         [HttpPost("create-course")]
         public async Task<Response> CreateCourse([FromBody]CreateCourseRequest request)
@@ -60,14 +64,25 @@ namespace StudentHelper.WebApi.Controllers.CourseControllers
             return new Response(200, true, "Вы успешно создали курс!");
         }
         [HttpGet("course/{id}")]
-        public async Task<Response> GetCourse(int id)
+        public async Task<CourseDTO> GetCourse(int id)
         {
             var course = await _courseRepository.GetByIdAsync(id);
             if (course == null)
             {
-                return new Response(404, false, "Курс не найден!");
+                throw new Exception("Курс с таким айди не найден!");
             }
-            return new Response(200, true, $"{course.Title}");
+            var pages = await _pageService.GetAllPagesByCourseId(course.Id);
+            var courseDTO = new CourseDTO
+            {
+                Description = course.Description,
+                IsFree = course.IsFree,
+                Price = course.Price,
+                IsPublished = course.IsPublished,
+                Title = course.Title,
+                SellerId = course.SellerId,
+                Pages = pages
+            };
+            return courseDTO;
         }
         [HttpPut("courses/{id}/image")]
         public async Task<Response> AddCourseImage(int id, byte[] image)

@@ -1,12 +1,10 @@
-﻿
-using Microsoft.AspNetCore.Http;
-using StudentHelper.Model.Models.Common;
+﻿using StudentHelper.Model.Models.Common;
 using StudentHelper.Model.Models.Entities.SellerEntities;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace StudentHelper.Model.Models.Entities.CourseEntities
 {
-    public class Course: BaseEntity<int>
+    public class Course : BaseEntity<int>
     {
         public string Title { get; set; }
         public string Description { get; set; }

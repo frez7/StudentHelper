@@ -16,6 +16,7 @@ namespace StudentHelper.WebApi.Controllers.SellerControllers
         { 
             _sellerRepository = sellerRepository;
         }
+
         [HttpGet("sellers")]
         public async Task<List<Seller>> GetSellersAsync()
         {
