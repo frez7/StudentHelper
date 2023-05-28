@@ -2,10 +2,9 @@
 using Microsoft.AspNetCore.Mvc;
 using StudentHelper.BL.Services.CourseServices;
 using StudentHelper.Model.Models.Common;
+using StudentHelper.Model.Models.Common.CourseResponses;
 using StudentHelper.Model.Models.Entities.CourseDTOs;
 using StudentHelper.Model.Models.Requests.CourseRequests;
-
-
 
 namespace StudentHelper.WebApi.Controllers.CourseControllers
 {
@@ -26,7 +25,7 @@ namespace StudentHelper.WebApi.Controllers.CourseControllers
             return await _pageService.GetAllPagesByCourseId(courseId);
         }
         [HttpGet("course/page/{pageId}")]
-        public async Task<PageDTO> GetPage(int pageId)
+        public async Task<PageResponse> GetPage(int pageId)
         {
             return await _pageService.GetPageById(pageId);
         }
@@ -39,6 +38,11 @@ namespace StudentHelper.WebApi.Controllers.CourseControllers
         public async Task<Response> CreatePage([FromBody] CreatePageRequest request)
         {
             return await _pageService.CreatePage(request);
+        }
+        [HttpPost("course/page/update")]
+        public async Task<Response> UpdatePage(UpdatePageRequest request)
+        {
+            return await _pageService.UpdatePage(request);
         }
     }
 }

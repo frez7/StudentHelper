@@ -2,6 +2,7 @@
 using StudentHelper.Model.Data;
 using StudentHelper.Model.Data.Repository;
 using StudentHelper.Model.Models.Common;
+using StudentHelper.Model.Models.Common.CourseResponses;
 using StudentHelper.Model.Models.Entities.CourseDTOs;
 using StudentHelper.Model.Models.Entities.CourseEntities;
 using StudentHelper.Model.Models.Entities.SellerEntities;
@@ -46,9 +47,13 @@ namespace StudentHelper.BL.Services.CourseServices
             }
             return pagesDto;
         }
-        public async Task<PageDTO> GetPageById( int pageId)
+        public async Task<PageResponse> GetPageById( int pageId)
         {
             var page = _context.Pages.FirstOrDefault(p => p.Id == pageId);
+            if (page == null)
+            {
+                throw new Exception("Страница с таким айди не найдена!");
+            }
             var pageDto = new PageDTO
             {
                 Id = pageId,
@@ -57,7 +62,7 @@ namespace StudentHelper.BL.Services.CourseServices
                 Content = page.Content,
                 CourseId = page.CourseId,
             };
-            return pageDto;
+            return new PageResponse(200, true, null, pageDto);
         }
         public async Task<Response> DeletePageById(int pageId)
         {
@@ -77,6 +82,29 @@ namespace StudentHelper.BL.Services.CourseServices
 
             await _pageRepository.DeleteAsync(pageId);
             return new Response(200, true, "Страница у курса успешно удалена!");
+        }
+        public async Task<Response> UpdatePage(UpdatePageRequest request)
+        {
+            var page = await _pageRepository.GetByIdAsync(request.PageId);
+            if (page ==null)
+            {
+                throw new Exception("Страница не найдена..");
+            }
+
+            var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int.TryParse(userId, out var id);
+            var seller = await _sellerRepository.GetByUserId(id);
+            var course = await _courseRepository.GetByIdAsync(page.CourseId);
+            if (seller.Id != course.SellerId)
+            {
+                throw new Exception("Вы не являетесь владельцем данного курса!");
+            }
+
+            page.Title = request.Title;
+            page.Description = request.Description;
+            page.Content = request.Content;
+            await _pageRepository.UpdateAsync(page);
+            return new Response(200, true, "Страница обновлена!");
         }
         public async Task<Response> CreatePage([FromBody] CreatePageRequest request)
         {
