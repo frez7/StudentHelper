@@ -148,10 +148,10 @@ namespace StudentHelper.BL.Services.CourseServices
             }
             else
             {
-                course.IsFree = courseQuery.IsFree;
-                course.Description = courseQuery.Description;
-                course.Title = courseQuery.Title;
-                course.Price = courseQuery.Price;
+                course.IsFree = request.IsFree;
+                course.Description = request.Description;
+                course.Title = request.Title;
+                course.Price = request.Price;
 
                 await _courseRepository.UpdateAsync(course);
                 return new Response(200, true, "Курс успешно обновлен!");
