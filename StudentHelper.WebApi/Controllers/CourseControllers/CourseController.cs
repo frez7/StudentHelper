@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StudentHelper.BL.Services.CourseServices;
 using StudentHelper.Model.Models;
@@ -5,13 +6,7 @@ using StudentHelper.Model.Models.Common;
 using StudentHelper.Model.Models.Entities.CourseDTOs;
 using StudentHelper.Model.Models.Entities.CourseEntities;
 using StudentHelper.Model.Models.Requests.CourseRequests;
-using AuthorizeAttribute = Microsoft.AspNetCore.Authorization.AuthorizeAttribute;
-using ControllerBase = Microsoft.AspNetCore.Mvc.ControllerBase;
-using HttpDeleteAttribute = Microsoft.AspNetCore.Mvc.HttpDeleteAttribute;
-using HttpGetAttribute = Microsoft.AspNetCore.Mvc.HttpGetAttribute;
-using HttpPostAttribute = Microsoft.AspNetCore.Mvc.HttpPostAttribute;
-using HttpPutAttribute = Microsoft.AspNetCore.Mvc.HttpPutAttribute;
-using RouteAttribute = Microsoft.AspNetCore.Mvc.RouteAttribute;
+
 
 namespace StudentHelper.WebApi.Controllers.CourseControllers
 {
@@ -42,9 +37,9 @@ namespace StudentHelper.WebApi.Controllers.CourseControllers
             return await _service.UpdateCourseImage(id, image);
         }
         [HttpGet("course/{courseId}/image")]
-        public async Task<System.Web.Mvc.FileContentResult> GetImage(int courseId)
+        public async Task<IActionResult> GetImage(int courseId)
         {
-            return await _service.GetImage(courseId);
+            return (IActionResult)await _service.GetImage(courseId);
         }
         [HttpPut("courses/{id}")]
         public async Task<Response> UpdateCourse(int id, [FromBody] CreateCourseRequest request)

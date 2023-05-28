@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using StudentHelper.Model.Data;
@@ -12,7 +13,6 @@ using StudentHelper.Model.Models.Entities.SellerEntities;
 using StudentHelper.Model.Models.Requests.CourseRequests;
 using System.Security.Claims;
 using System.Web.Http;
-using System.Web.Mvc;
 
 namespace StudentHelper.BL.Services.CourseServices
 {
@@ -41,7 +41,7 @@ namespace StudentHelper.BL.Services.CourseServices
             _pageService = pageService;
             _httpContextAccessor = httpContextAccessor;
         }
-        public async Task<Response> CreateCourse([FromBody] CreateCourseRequest request)
+        public async Task<Response> CreateCourse([Microsoft.AspNetCore.Mvc.FromBody] CreateCourseRequest request)
         {
             var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             int.TryParse(userId, out var id);
@@ -112,7 +112,7 @@ namespace StudentHelper.BL.Services.CourseServices
             await _courseRepository.UpdateAsync(course);
             return new Response(200, true, course.ImageURL);
         }
-        public async Task<FileContentResult> GetImage(int courseId)
+        public async Task<IActionResult> GetImage(int courseId)
         {
             var course = await _courseRepository.GetByIdAsync(courseId);
             if (course == null || course.ImageURL == null)
@@ -122,13 +122,10 @@ namespace StudentHelper.BL.Services.CourseServices
             string rootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
             string imagePath = Path.Combine(rootPath, course.ImageURL.TrimStart('/'));
             byte[] imageBytes = System.IO.File.ReadAllBytes(imagePath);
-            var fileContentResult = new FileContentResult(imageBytes, "image/jpeg")
-            {
-                FileDownloadName = "image.jpg"
-            };
-            return fileContentResult;
+            var fileStream = new FileStream(imagePath, FileMode.Open, FileAccess.Read);
+            return new FileStreamResult(fileStream, "image/jpeg");
         }
-        public async Task<Response> UpdateCourse(int id, [FromBody] CreateCourseRequest request)
+        public async Task<Response> UpdateCourse(int id, [System.Web.Http.FromBody] CreateCourseRequest request)
         {
             var course = await _courseRepository.GetByIdAsync(id);
             var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
