@@ -2,12 +2,14 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.CookiePolicy;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using StudentHelper.BL.Services.CourseServices;
+using Microsoft.AspNetCore.Hosting;
 using StudentHelper.Model.Data;
 using StudentHelper.Model.Data.Repository;
 using StudentHelper.Model.Extensions;
@@ -42,6 +44,7 @@ builder.Services.AddTransient<IRepository<Seller>, Repository<Seller>>();
 builder.Services.AddTransient<IRepository<StudentCourse>, Repository<StudentCourse>>();
 builder.Services.AddTransient<IRepository<Page>, Repository<Page>>();
 builder.Services.AddTransient<PageService>();
+
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole<int>>()
     .AddEntityFrameworkStores<IdentityContext>()

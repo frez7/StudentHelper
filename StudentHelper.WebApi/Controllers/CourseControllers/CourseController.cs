@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -29,8 +30,13 @@ namespace StudentHelper.WebApi.Controllers.CourseControllers
         private readonly CourseContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly PageService _pageService;
+        private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public CourseController(IRepository<Course> courseRepository, IRepository<Seller> sellerRepository, IRepository<Student> studentRepository, IRepository<StudentCourse> studentCourseRepository, CourseContext context, UserManager<ApplicationUser> userManager, PageService pageService)
+        public CourseController(IRepository<Course> courseRepository, IRepository<Seller> sellerRepository, 
+            IRepository<Student> studentRepository, IRepository<StudentCourse> studentCourseRepository, 
+            CourseContext context, UserManager<ApplicationUser> userManager, PageService pageService,
+            IWebHostEnvironment webHostEnvironment, IHttpContextAccessor httpContextAccessor)
         {
             _courseRepository = courseRepository;
             _sellerRepository = sellerRepository;
@@ -39,6 +45,8 @@ namespace StudentHelper.WebApi.Controllers.CourseControllers
             _context = context;
             _userManager = userManager;
             _pageService = pageService;
+            _webHostEnvironment = webHostEnvironment;
+            _httpContextAccessor = httpContextAccessor;
         }
         [HttpPost("create-course")]
         public async Task<Response> CreateCourse([FromBody]CreateCourseRequest request)
@@ -85,16 +93,47 @@ namespace StudentHelper.WebApi.Controllers.CourseControllers
             return courseDTO;
         }
         [HttpPut("courses/{id}/image")]
-        public async Task<Response> AddCourseImage(int id, byte[] image)
+        public async Task<Response> UpdateCourseImage(int id, IFormFile image)
         {
             var course = await _courseRepository.GetByIdAsync(id);
             if (course == null)
             {
                 return new Response(404, false, "Not Found!");
             }
+            var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int.TryParse(userId, out var parsedId);
+            var seller = await _sellerRepository.GetByUserId(parsedId);
+            if (seller.Id != course.SellerId)
+            {
+                throw new Exception("Вы не являетесь владельцем данного курса!");
+            }
             course.Image = image;
+            string rootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            string uploadsFolder = Path.Combine(rootPath, "images");
+            string uniqueFileName = Guid.NewGuid().ToString() + "_" + course.Image.FileName;
+            string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await course.Image.CopyToAsync(stream);
+            }
+
+            course.ImageURL = "/images/" + uniqueFileName;
             await _courseRepository.UpdateAsync(course);
-            return new Response(200, true, "Изображение обновлено!");
+            return new Response(200, true, course.ImageURL);
+        }
+        [HttpGet("course/{courseId}/image")]
+        public async Task<IActionResult> GetImage(int courseId)
+        {
+            var course = await _courseRepository.GetByIdAsync(courseId);
+            if (course == null || course.ImageURL == null)
+            {
+                throw new Exception("Курс не найден, либо у данного курса нет изображения!");
+            }
+            string rootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            string imagePath = Path.Combine(rootPath, course.ImageURL.TrimStart('/'));
+            byte[] imageBytes = System.IO.File.ReadAllBytes(imagePath);
+            return File(imageBytes, "image/jpeg");
         }
         [HttpPut("courses/{id}")]
         public async Task<Response> UpdateCourse(int id, [FromQuery] CreateCourseRequest courseQuery)
@@ -134,6 +173,13 @@ namespace StudentHelper.WebApi.Controllers.CourseControllers
             if (course == null)
             {
                 return new Response(404, false, "Курс с таким айди не найден!");
+            }
+            var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int.TryParse(userId, out var parsedId);
+            var seller = await _sellerRepository.GetByUserId(parsedId);
+            if (seller.Id != course.SellerId)
+            {
+                throw new Exception("Вы не являетесь владельцем данного курса!");
             }
             await _courseRepository.DeleteAsync(id);
             return new Response(200, true, "Вы успешно удалили данный курс!");
