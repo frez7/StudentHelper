@@ -46,8 +46,10 @@ builder.Services.AddTransient<IRepository<SellerApplication>, Repository<SellerA
 builder.Services.AddTransient<IRepository<Seller>, Repository<Seller>>();
 builder.Services.AddTransient<IRepository<StudentCourse>, Repository<StudentCourse>>();
 builder.Services.AddTransient<IRepository<Page>, Repository<Page>>();
+builder.Services.AddTransient<IRepository<VideoLesson>,  Repository<VideoLesson>>();
 builder.Services.AddTransient<PageService>();
 builder.Services.AddTransient<CourseService>();
+builder.Services.AddTransient<VideoService>();
 
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole<int>>()
