@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using StudentHelper.BL.Services.OtherServices;
 using StudentHelper.Model.Data.Repository;
 using StudentHelper.Model.Models;
 using StudentHelper.Model.Models.Common;
@@ -172,8 +173,8 @@ namespace StudentHelper.WebApi.Controllers
             var callbackUrl = Url.Action("ResetPassword", "Auth", new { userId = user.Id, token = token }, protocol: HttpContext.Request.Scheme);
             var emailRequest = new EmailRequest
             {
-                Body = "Reset Password",
-                Subject = $"Please reset your password by clicking here: <a href='{callbackUrl}'>link</a>",
+                Body = "Администрация Buyursa.kg",
+                Subject = $"Вы можете сбросить пароль от вашего аккаунта, перейдя по этой ссылке: <a href='{callbackUrl}'>КЛИК</a>",
                 RecipientEmail = request.RecipientEmail
             };
             await _emailService.SendEmailAsync(emailRequest, _config);
@@ -194,7 +195,7 @@ namespace StudentHelper.WebApi.Controllers
             var result = await _userManager.ResetPasswordAsync(user, token, newPass);
             var emailRequest = new EmailRequest
             {
-                Body = "Сброс пароля",
+                Body = "Администрация Buyursa.kg",
                 Subject =
                 $"UserName: {user.UserName}<br/>" +
                 $"Password: {newPass}<br/>" +

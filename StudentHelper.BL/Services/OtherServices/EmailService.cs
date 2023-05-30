@@ -3,7 +3,7 @@ using StudentHelper.Model.Models.Requests;
 using System.Net;
 using System.Net.Mail;
 
-namespace StudentHelper.WebApi.Service
+namespace StudentHelper.BL.Services.OtherServices
 {
     public class EmailService
     {
