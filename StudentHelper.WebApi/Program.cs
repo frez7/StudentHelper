@@ -22,6 +22,8 @@ using StudentHelper.WebApi.Data;
 using StudentHelper.WebApi.Service;
 using System.Configuration;
 using System.Text;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Routing;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton(provider =>

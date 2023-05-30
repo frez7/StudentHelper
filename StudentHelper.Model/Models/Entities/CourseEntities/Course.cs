@@ -10,14 +10,13 @@ namespace StudentHelper.Model.Models.Entities.CourseEntities
         public string Title { get; set; }
         public string Description { get; set; }
         public bool IsFree { get; set; }
-        public bool? IsPublished { get; set; }
         public decimal Price { get; set; }
         [NotMapped]
         public IFormFile? Image { get; set; }
         public string? ImageURL { get; set; }
         public Seller Seller { get; set; }
         public int SellerId { get; set; }
-        public List<StudentCourse> Students { get; set; }
-        public List<Page> Pages { get; set; }
+        public List<StudentCourse>? Students { get; set; }
+        public List<Page>? Pages { get; set; }
     }
 }

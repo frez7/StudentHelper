@@ -6,9 +6,8 @@ namespace StudentHelper.Model.Models.Entities.CourseEntities
     {
         public string Title { get; set; }
         public string Description { get; set; }
-        public TimeSpan Duration { get; set; }
         public string VideoUrl { get; set; }
         public int PageId { get; set; }
-        public Page Page { get; set; }
+        public Page? Page { get; set; }
     }
 }

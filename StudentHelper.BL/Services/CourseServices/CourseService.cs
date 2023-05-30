@@ -11,6 +11,7 @@ using StudentHelper.Model.Models.Entities.CourseDTOs;
 using StudentHelper.Model.Models.Entities.CourseEntities;
 using StudentHelper.Model.Models.Entities.SellerEntities;
 using StudentHelper.Model.Models.Requests.CourseRequests;
+using System.Linq;
 using System.Security.Claims;
 using System.Web.Http;
 
@@ -56,7 +57,6 @@ namespace StudentHelper.BL.Services.CourseServices
                 Description = request.Description,
                 IsFree = request.IsFree,
                 Price = request.Price,
-                IsPublished = false,
                 Seller = seller,
                 SellerId = seller.Id,
             };
@@ -76,10 +76,9 @@ namespace StudentHelper.BL.Services.CourseServices
                 Description = course.Description,
                 IsFree = course.IsFree,
                 Price = course.Price,
-                IsPublished = course.IsPublished,
                 Title = course.Title,
                 SellerId = course.SellerId,
-                Pages = pages
+                Pages = pages,
             };
             return courseDTO;
         }
@@ -117,7 +116,7 @@ namespace StudentHelper.BL.Services.CourseServices
             var course = await _courseRepository.GetByIdAsync(courseId);
             if (course == null || course.ImageURL == null)
             {
-                throw new Exception("Курс не найден, либо у данного курса нет изображения!");
+                throw new Exception("Изображение не найдено!");
             }
             string rootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
             string imagePath = Path.Combine(rootPath, course.ImageURL.TrimStart('/'));
@@ -250,10 +249,48 @@ namespace StudentHelper.BL.Services.CourseServices
             }
             return courses;
         }
-        public async Task<List<Course>> GetAllCourses()
+        public async Task<List<CourseDTO>> GetAllCourses([FromQuery] GetAllCoursesQuery query)
         {
-            var courses = await _courseRepository.GetAllAsync();
-            return courses.ToList();
+            var courses = _context.Courses
+                .Skip((query.PageNumber - 1) * query.PageSize)
+                .Take(query.PageSize)
+                .ToList();
+            var coursesdto = new List<CourseDTO>();
+            foreach (var course in courses)
+            {
+                coursesdto.Add(new CourseDTO 
+                { 
+                    Description = course.Description,
+                    IsFree = course.IsFree,
+                    Price = course.Price,
+                    Title = course.Title,
+                    SellerId = course.SellerId,
+                    Id = course.Id,
+                });
+            }
+            return coursesdto;
+        }
+        public async Task<List<CourseDTO>> SearchCourses([FromQuery] SearchCoursesQuery query)
+        {
+            var courses = _context.Courses
+            .Where(c => c.Title.Contains(query.Word) || c.Description.Contains(query.Word))
+            .OrderBy(c => c.Title)
+            .Skip((query.PageNumber - 1) * query.PageSize)
+            .Take(query.PageSize);
+            var coursesdto = new List<CourseDTO>();
+            foreach (var course in courses)
+            {
+                coursesdto.Add(new CourseDTO
+                {
+                    Description = course.Description,
+                    IsFree = course.IsFree,
+                    Price = course.Price,
+                    Title = course.Title,
+                    SellerId = course.SellerId,
+                    Id = course.Id,
+                });
+            }
+            return coursesdto;
         }
     }
 }

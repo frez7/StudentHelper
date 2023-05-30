@@ -75,9 +75,14 @@ namespace StudentHelper.WebApi.Controllers.CourseControllers
         }
         
         [HttpGet("courses")]
-        public async Task<List<Course>> GetAllCourses()
+        public async Task<List<CourseDTO>> GetAllCourses([FromQuery] GetAllCoursesQuery query)
         {
-            return await _service.GetAllCourses();
+            return await _service.GetAllCourses(query);
+        }
+        [HttpGet("courses/search")]
+        public async Task<List<CourseDTO>> SearchCourses([FromQuery] SearchCoursesQuery query)
+        {
+            return await _service.SearchCourses(query);
         }
     }
 }
