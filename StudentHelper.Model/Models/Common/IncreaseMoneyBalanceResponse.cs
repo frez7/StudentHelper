@@ -8,12 +8,12 @@ namespace StudentHelper.Model.Models.Common
 {
     public class IncreaseMoneyBalanceResponse : Response
     {
-        public IncreaseMoneyBalanceResponse(int statusCode, bool success, string message, decimal moneyAmount) : base(statusCode, success, message)
+        public IncreaseMoneyBalanceResponse(int statusCode, bool success, string message, decimal? moneyAmount) : base(statusCode, success, message)
         {
             MoneyAmount = moneyAmount;
         }
 
-        public decimal MoneyAmount { get; set; }
+        public decimal? MoneyAmount { get; set; }
 
     }
 }
