@@ -7,8 +7,8 @@ namespace StudentHelper.Model.Models.Entities.CourseEntities
         public int SellerId { get; set; }
         public int CourseId { get; set; }
         public int StudentId { get; set; }
-        public int ReceivedMoney { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public decimal ReceivedMoney { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     }
 }
