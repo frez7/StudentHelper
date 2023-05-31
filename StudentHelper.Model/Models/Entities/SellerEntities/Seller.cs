@@ -16,7 +16,7 @@ namespace StudentHelper.Model.Models.Entities.SellerEntities
         public string LastName { get; set; }
         public string Phone { get; set; }
         public string Email { get; set; }
-        public decimal MoneyBalance { get; set; }
+        public decimal? MoneyBalance { get; set; } = 0;
         public string CompanyName { get; set; }
         public string CompanyDescription { get; set; }
         public List<Course> Courses { get; set; }
