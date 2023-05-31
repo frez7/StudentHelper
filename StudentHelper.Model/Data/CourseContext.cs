@@ -19,6 +19,7 @@ namespace StudentHelper.Model.Data
         public DbSet<Test> Tests { get; set; }
         public DbSet<Question> Questions { get; set; }
         public DbSet<Answer> Answers { get; set; }
+        public DbSet<Enrollment> Enrollments { get; set; }
 
         public CourseContext(DbContextOptions<CourseContext> options)
         : base(options)
