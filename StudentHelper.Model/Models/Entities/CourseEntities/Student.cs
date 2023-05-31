@@ -10,6 +10,7 @@ namespace StudentHelper.Model.Models.Entities.CourseEntities
     public class Student : BaseEntity<int>
     {
         public int UserId { get; set; }
+        public decimal MoneyBalance { get; set; }
         public List<StudentCourse>? Courses { get; set; }
 
     }
