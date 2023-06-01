@@ -25,6 +25,10 @@ using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
 using StudentHelper.BL.Services.OtherServices;
+using StudentHelper.WebApi.Managers;
+using StudentHelper.BL.Services.SellerServices;
+using StudentHelper.BL.Services;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton(provider =>
@@ -51,6 +55,14 @@ builder.Services.AddTransient<IRepository<Enrollment>, Repository<Enrollment>>()
 builder.Services.AddTransient<PageService>();
 builder.Services.AddTransient<CourseService>();
 builder.Services.AddTransient<VideoService>();
+builder.Services.AddTransient<StudentService>();
+builder.Services.AddTransient<SellerService>();
+builder.Services.AddTransient<ProfileService>();
+builder.Services.AddTransient<AuthManager>();
+builder.Services.AddTransient<AdminManager>();
+
+
+builder.Services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
 
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole<int>>()
