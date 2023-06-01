@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using StudentHelper.BL.Services.SellerServices;
 using StudentHelper.Model.Models.Common;
+using StudentHelper.Model.Models.Common.SellerResponses;
 using StudentHelper.Model.Models.Entities.SellerEntities;
 using StudentHelper.Model.Models.Requests.SellerRequests;
 

@@ -51,11 +51,11 @@ namespace StudentHelper.WebApi.Controllers.CourseControllers
         {
             return await _service.DeleteCourse(id);
         }
-        [HttpPost("add-course-to-student")]
-        public async Task<Response> AddCourseToStudent(int courseId)
-        {
-            return await _service.AddCourseToStudent(courseId);
-        }
+        //[HttpPost("add-course-to-student")]
+        //public async Task<Response> AddCourseToStudent(int courseId)
+        //{
+        //    return await _service.AddCourseToStudent(courseId);
+        //}
         [HttpPost("remove-course-from-student")]
         public async Task<Response> RemoveCourseFromStudent(int courseId)
         {

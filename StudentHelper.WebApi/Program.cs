@@ -58,6 +58,8 @@ builder.Services.AddTransient<VideoService>();
 builder.Services.AddTransient<StudentService>();
 builder.Services.AddTransient<SellerService>();
 builder.Services.AddTransient<ProfileService>();
+builder.Services.AddTransient<SellerApplicationService>();
+builder.Services.AddTransient<EnrollmentService>();
 builder.Services.AddTransient<AuthManager>();
 builder.Services.AddTransient<AdminManager>();
 

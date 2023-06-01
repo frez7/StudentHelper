@@ -37,7 +37,7 @@ namespace StudentHelper.WebApi.Controllers.CourseControllers
             return await _pageService.GetPageById(pageId);
         }
 
-        [HttpPost("course/page/update")]
+        [HttpPut("course/page/update")]
         public async Task<Response> UpdatePage([FromBody] UpdatePageRequest request)
         {
             return await _pageService.UpdatePage(request);

@@ -17,6 +17,9 @@ using System.Web.Http;
 
 namespace StudentHelper.BL.Services.CourseServices
 {
+    /// <summary>
+    /// Сервис для курсов
+    /// </summary>
     public class CourseService
     {
         private readonly IRepository<Course> _courseRepository;
