@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using StudentHelper.Model.Data.Repository;
+using StudentHelper.BL.Services.SellerServices;
 using StudentHelper.Model.Models.Entities.SellerEntities;
 
 namespace StudentHelper.WebApi.Controllers.SellerControllers
@@ -10,18 +10,17 @@ namespace StudentHelper.WebApi.Controllers.SellerControllers
     [Route("api/[controller]")]
     public class SellerController : ControllerBase
     {
-        private readonly IRepository<Seller> _sellerRepository;
+        private readonly SellerService _service;
 
-        public SellerController(IRepository<Seller> sellerRepository) 
-        { 
-            _sellerRepository = sellerRepository;
+        public SellerController(SellerService service)
+        {
+            _service = service;
         }
 
         [HttpGet("sellers")]
         public async Task<List<Seller>> GetSellersAsync()
         {
-            var sellers = await _sellerRepository.GetAllAsync();
-            return sellers.ToList();
+            return await _service.GetSellersAsync();
         }
     }
 }
