@@ -4,10 +4,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.EntityFrameworkCore;
+using StudentHelper.BL.Logging;
 using StudentHelper.BL.Services.OtherServices;
 using StudentHelper.Model.Data.Repository;
 using StudentHelper.Model.Models;
 using StudentHelper.Model.Models.Common;
+using StudentHelper.Model.Models.Common.Other;
 using StudentHelper.Model.Models.Configs;
 using StudentHelper.Model.Models.Entities;
 using StudentHelper.Model.Models.Entities.CourseEntities;
@@ -36,12 +38,14 @@ namespace StudentHelper.WebApi.Managers
         private readonly IRepository<Student> _repository;
         private readonly IRepository<Seller> _sellerRepository;
         private readonly IUrlHelper _urlHelper;
+        private readonly DbLogger _logger;
 
         public AuthManager(IHttpContextAccessor httpContextAccessor, SignInManager<ApplicationUser> signInManager,
             UserManager<ApplicationUser> userManager, RoleManager<IdentityRole<int>> roleManager,
             EmailService emailService, SMTPConfig config, ITokenService tokenService, IConfiguration configuration, 
             IRepository<Student> repository, IRepository<Seller> sellerRepository,
-            IActionContextAccessor actionContextAccessor, IUrlHelperFactory urlHelperFactory)
+            IActionContextAccessor actionContextAccessor, IUrlHelperFactory urlHelperFactory,
+            DbLogger logger)
         {
             _httpContextAccessor = httpContextAccessor;
             _signInManager = signInManager;
@@ -53,6 +57,7 @@ namespace StudentHelper.WebApi.Managers
             _configuration = configuration;
             _repository = repository;
             _sellerRepository = sellerRepository;
+            _logger = logger;
             var actionContext = actionContextAccessor.ActionContext;
             _urlHelper = urlHelperFactory.GetUrlHelper(actionContext);
             _urlHelper.ActionContext.HttpContext = httpContextAccessor.HttpContext;
@@ -61,19 +66,16 @@ namespace StudentHelper.WebApi.Managers
 
         public async Task<AuthResponse> Authenticate([FromBody] LoginRequest request)
         {
+            var ipAddress = _httpContextAccessor.HttpContext.Connection.RemoteIpAddress.ToString();
             var user = await _userManager.FindByNameAsync(request.UserName);
             if (user == null)
             {
-                return new AuthResponse(400, false, "Пользователь не найден!"
-               , null, null, null);
                 throw new Exception("Пользователь не найден!");
             }
             var isPasswordValid = await _userManager.CheckPasswordAsync(user, request.Password);
 
             if (!isPasswordValid)
             {
-                return new AuthResponse(400, false, "Неверный пароль!"
-               , null, null, null);
                 throw new Exception("Неверный пароль");
             }
 
@@ -89,6 +91,8 @@ namespace StudentHelper.WebApi.Managers
             user.RefreshToken = _configuration.GenerateRefreshToken();
             user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(_configuration.GetSection("Jwt:RefreshTokenValidityInDays").Get<int>());
             await _userManager.UpdateAsync(user);
+
+            _logger.CreateLog(LogEnum.Information, $"{ipAddress}, вошел в систему как пользователь!");
             return new AuthResponse(200, true, "Операция успешна!"
                 , accessToken, user.RefreshToken, user.UserName);
         }
@@ -103,16 +107,12 @@ namespace StudentHelper.WebApi.Managers
             var existingUser = await _userManager.FindByEmailAsync(request.Email);
             if (existingUser != null)
             {
-                return new AuthResponse(400, false, "Пользователь с такой почтой уже зарегестрирован!"
-               , null, null, null);
-                throw new Exception("Пользователь с такой почтой уже зарегестрирован!");
+                throw new Exception("Пользователь с такой почтой уже зарегистрирован!");
             }
             var result = await _userManager.CreateAsync(user, request.Password);
 
             if (!result.Succeeded)
             {
-                return new AuthResponse(400, false, "Произошла некая ошибка при создании нового пользователя!"
-               , null, null, null);
                 throw new Exception("Произошла некая ошибка при создании нового пользователя!");
             }
             var role = new IdentityRole<int> { Name = "User" };

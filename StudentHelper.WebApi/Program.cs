@@ -29,6 +29,7 @@ using StudentHelper.WebApi.Managers;
 using StudentHelper.BL.Services.SellerServices;
 using StudentHelper.BL.Services;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using StudentHelper.BL.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton(provider =>
@@ -36,10 +37,18 @@ builder.Services.AddSingleton(provider =>
 
 
 builder.Services.AddDbContext<IdentityContext>();
-builder.Services.AddDbContext<CourseContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("StudentHelperDatabase"),
-        b => b.MigrationsAssembly("StudentHelper.WebApi")));
+builder.Services.AddDbContext<CourseContext>();
 
+
+builder.Services.AddSingleton<DbLogger>();
+builder.Services.AddSingleton<DbLoggerProvider>();
+builder.Services.AddLogging();
+builder.Services.AddSingleton<ILoggerProvider>(provider => provider.GetService<DbLoggerProvider>());
+builder.Logging.AddDbLogger(options =>
+{
+    builder.Configuration.GetSection("Logging")
+    .GetSection("Database").GetSection("Options").Bind(options);
+});
 
 builder.Services.AddTransient<EmailService>();
 builder.Services.AddScoped<HttpClient>();
