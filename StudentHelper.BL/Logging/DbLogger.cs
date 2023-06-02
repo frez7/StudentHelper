@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using System.Diagnostics.CodeAnalysis;
 using StudentHelper.Model.Models.Common.Other;
 using StudentHelper.Model.Models.Common;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace StudentHelper.BL.Logging
 {
@@ -24,31 +25,6 @@ namespace StudentHelper.BL.Logging
         {
             return logLevel != LogLevel.None;
         }
-
-        public void CreateLog(LogEnum logType,string message)
-        {
-            using (var connection = new SqlConnection(_dbLoggerProvider.Options.ConnectionString))
-            {
-                connection.Open();
-
-                using (var command = new SqlCommand())
-                {
-                    command.Connection = connection;
-                    command.CommandType = System.Data.CommandType.Text;
-                    command.CommandText = string.Format("INSERT INTO {0} ([LogType], [Message], [Created]) " +
-                        "VALUES (@LogType, @Message, @Created)",
-                        _dbLoggerProvider.Options.InfoLogs);
-
-                    command.Parameters.Add(new SqlParameter("@LogType", $"{logType.ToString()}"));
-                    command.Parameters.Add(new SqlParameter("@Message", $"{message}"));
-                    command.Parameters.Add(new SqlParameter("@Created", DateTimeOffset.Now));
-
-                    command.ExecuteNonQuery();
-                }
-
-                connection.Close();
-            }
-        }
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, 
             Exception exception, Func<TState, Exception, string> formatter)
         {
@@ -57,8 +33,11 @@ namespace StudentHelper.BL.Logging
                 return;
             }
 
-            var threadId = Thread.CurrentThread.ManagedThreadId; 
-
+            var threadId = Thread.CurrentThread.ManagedThreadId;
+            if (eventId == 20101 || eventId == 30000 || eventId == 14)
+            {
+                return;
+            }
             using (var connection = new SqlConnection(_dbLoggerProvider.Options.ConnectionString))
             {
                 connection.Open();
@@ -68,9 +47,9 @@ namespace StudentHelper.BL.Logging
                     command.Connection = connection;
                     command.CommandType = System.Data.CommandType.Text;
                     command.CommandText = string.Format("INSERT INTO {0} " +
-                        "([LogLevel], [ThreadId], [EventId], [EventName], [ExceptionMessage], [ExceptionStackTrace], [ExceptionSource], [Created]) " +
-                        "VALUES (@LogLevel, @ThreadId, @EventId, @EventName, @ExceptionMessage, @ExceptionStackTrace, @ExceptionSource, @Created)",
-                        _dbLoggerProvider.Options.ErrorLogs);
+                        "([LogLevel], [ThreadId], [EventId], [EventName], [Message], [ExceptionMessage], [ExceptionStackTrace], [ExceptionSource], [Created]) " +
+                        "VALUES (@LogLevel, @ThreadId, @EventId, @EventName, @Message, @ExceptionMessage, @ExceptionStackTrace, @ExceptionSource, @Created)",
+                        _dbLoggerProvider.Options.Logs);
                     if (!string.IsNullOrWhiteSpace(logLevel.ToString()))
                     {
                         command.Parameters.Add(new SqlParameter("@LogLevel", $"{logLevel.ToString()}"));
@@ -93,6 +72,8 @@ namespace StudentHelper.BL.Logging
                     {
                         command.Parameters.Add(new SqlParameter("@EventName", $"[IS NULL]"));
                     }
+
+                    command.Parameters.Add(new SqlParameter("@Message", formatter(state, exception)));
 
                     if (exception != null)
                     {

@@ -30,6 +30,8 @@ using StudentHelper.BL.Services.SellerServices;
 using StudentHelper.BL.Services;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using StudentHelper.BL.Logging;
+using StudentHelper.Model.Models.Common.Other;
+using StudentHelper.WebApi.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton(provider =>
@@ -53,6 +55,7 @@ builder.Logging.AddDbLogger(options =>
 builder.Services.AddTransient<EmailService>();
 builder.Services.AddScoped<HttpClient>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddTransient<IRepository<Log>, Repository<Log>>();
 builder.Services.AddTransient<IRepository<Student>, Repository<Student>>();
 builder.Services.AddTransient<IRepository<Course>, Repository<Course>>();
 builder.Services.AddTransient<IRepository<SellerApplication>, Repository<SellerApplication>>();

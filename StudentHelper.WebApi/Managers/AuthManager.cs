@@ -1,9 +1,8 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Routing;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client;
 using StudentHelper.BL.Logging;
 using StudentHelper.BL.Services.OtherServices;
 using StudentHelper.Model.Data.Repository;
@@ -15,13 +14,10 @@ using StudentHelper.Model.Models.Entities;
 using StudentHelper.Model.Models.Entities.CourseEntities;
 using StudentHelper.Model.Models.Entities.SellerEntities;
 using StudentHelper.Model.Models.Requests;
-using StudentHelper.WebApi.Data;
 using StudentHelper.WebApi.Extensions;
 using StudentHelper.WebApi.Service;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
-using System.Security.Claims;
-using System.Security.Policy;
 
 namespace StudentHelper.WebApi.Managers
 {
@@ -92,7 +88,7 @@ namespace StudentHelper.WebApi.Managers
             user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(_configuration.GetSection("Jwt:RefreshTokenValidityInDays").Get<int>());
             await _userManager.UpdateAsync(user);
 
-            _logger.CreateLog(LogEnum.Information, $"{ipAddress}, вошел в систему как пользователь!");
+            _logger.LogInformation("test");
             return new AuthResponse(200, true, "Операция успешна!"
                 , accessToken, user.RefreshToken, user.UserName);
         }
@@ -152,6 +148,7 @@ namespace StudentHelper.WebApi.Managers
             user.RefreshToken = newRefreshToken;
             await _userManager.UpdateAsync(user);
 
+            
             return new TokenModel
             {
                 AccessToken = new JwtSecurityTokenHandler().WriteToken(newAccessToken),

@@ -21,8 +21,7 @@ namespace StudentHelper.Model.Data
         public DbSet<Question> Questions { get; set; }
         public DbSet<Answer> Answers { get; set; }
         public DbSet<Enrollment> Enrollments { get; set; }
-        public DbSet<LogError> ErrorLogs { get; set; }
-        public DbSet<LogInfo> InfoLogs { get; set; }
+        public DbSet<Log> Logs { get; set; }
 
         public CourseContext(DbContextOptions<CourseContext> options)
         : base(options)
