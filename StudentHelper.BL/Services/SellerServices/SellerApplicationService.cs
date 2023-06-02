@@ -10,6 +10,7 @@ using StudentHelper.Model.Models.Requests;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using StudentHelper.BL.Services.OtherServices;
+using StudentHelper.Model.Models.Common.SellerResponses;
 
 namespace StudentHelper.BL.Services.SellerServices
 {

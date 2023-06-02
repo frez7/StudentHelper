@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using StudentHelper.Model.Models.Common.Other;
 using StudentHelper.Model.Models.Entities.CourseEntities;
 using StudentHelper.Model.Models.Entities.SellerEntities;
 using System;
@@ -20,6 +21,7 @@ namespace StudentHelper.Model.Data
         public DbSet<Question> Questions { get; set; }
         public DbSet<Answer> Answers { get; set; }
         public DbSet<Enrollment> Enrollments { get; set; }
+        public DbSet<Log> Logs { get; set; }
 
         public CourseContext(DbContextOptions<CourseContext> options)
         : base(options)
@@ -41,6 +43,7 @@ namespace StudentHelper.Model.Data
             optionsBuilder.UseSqlServer(connectionString, builder =>
             {
                 builder.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null);
+                builder.MigrationsAssembly("StudentHelper.WebApi");
 
             });
         }

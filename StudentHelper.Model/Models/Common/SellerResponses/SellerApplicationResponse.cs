@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StudentHelper.Model.Models.Common
+namespace StudentHelper.Model.Models.Common.SellerResponses
 {
     public class SellerApplicationResponse : Response
     {

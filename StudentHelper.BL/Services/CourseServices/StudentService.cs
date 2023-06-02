@@ -12,6 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 using StudentHelper.Model.Models.Common;
 using System.Security.Claims;
+using StudentHelper.BL.Services.SellerServices;
 
 namespace StudentHelper.BL.Services.CourseServices
 {
@@ -23,9 +24,11 @@ namespace StudentHelper.BL.Services.CourseServices
         private readonly CourseContext _context;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly CourseService _courseService;
+        private readonly EnrollmentService _enrollmentService;
 
         public StudentService(IRepository<Course> courseRepository, IRepository<Student> studentRepository, IRepository<Seller> sellerRepository, 
-            CourseContext context, IHttpContextAccessor httpContextAccessor, CourseService courseService)
+            CourseContext context, IHttpContextAccessor httpContextAccessor, CourseService courseService,
+            EnrollmentService enrollmentService)
         {
             _courseRepository = courseRepository;
             _studentRepository = studentRepository;
@@ -33,6 +36,7 @@ namespace StudentHelper.BL.Services.CourseServices
             _context = context;
             _httpContextAccessor = httpContextAccessor;
             _courseService = courseService;
+            _enrollmentService = enrollmentService;
         }
 
         public async Task<IncreaseMoneyBalanceResponse> IncreaseMoneyBalance(int money)
@@ -71,27 +75,30 @@ namespace StudentHelper.BL.Services.CourseServices
             {
                 throw new Exception("Курс не найден!");
             }
-
+            var userSeller = await _sellerRepository.GetByUserId(id);
             var seller = await _sellerRepository.GetByIdAsync(course.SellerId);
 
             var studentBalance = student.MoneyBalance;
 
             var coursePrice = course.Price;
+            if (userSeller.Id == seller.Id)
+            {
+                throw new Exception("Ты не можешь купить свой курс!");
+            }
 
             if (studentBalance >= coursePrice)
             {
-                // Вычитаем стоимость курса из баланса студента
                 student.MoneyBalance -= coursePrice;
 
-                // Добавляем курс к студенту
                 await _courseService.AddCourseToStudent(courseId);
-                // Прибавляем стоимость курса к балансу продавца
+
                 seller.MoneyBalance += coursePrice;
 
-                // Сохраняем изменения
                 await _studentRepository.UpdateAsync(student);
                 await _sellerRepository.UpdateAsync(seller);
                 await _courseRepository.UpdateAsync(course);
+
+                await _enrollmentService.AddEnrollment(courseId);
 
                 return new Response(200, true, "Курс успешно приобретен!");
             }

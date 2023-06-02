@@ -1,6 +1,6 @@
 ﻿using StudentHelper.Model.Models.Common;
 
-namespace StudentHelper.Model.Models.Entities.CourseEntities
+namespace StudentHelper.Model.Models.Entities.SellerEntities
 {
     public class Enrollment : BaseEntity<int>
     {

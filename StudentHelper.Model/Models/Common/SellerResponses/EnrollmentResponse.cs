@@ -1,4 +1,4 @@
-﻿namespace StudentHelper.Model.Models.Common.CourseResponses
+﻿namespace StudentHelper.Model.Models.Common.SellerResponses
 {
     public class EnrollmentResponse : Response
     {

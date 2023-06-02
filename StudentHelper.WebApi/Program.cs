@@ -29,6 +29,9 @@ using StudentHelper.WebApi.Managers;
 using StudentHelper.BL.Services.SellerServices;
 using StudentHelper.BL.Services;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using StudentHelper.BL.Logging;
+using StudentHelper.Model.Models.Common.Other;
+using StudentHelper.WebApi.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton(provider =>
@@ -36,14 +39,23 @@ builder.Services.AddSingleton(provider =>
 
 
 builder.Services.AddDbContext<IdentityContext>();
-builder.Services.AddDbContext<CourseContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("StudentHelperDatabase"),
-        b => b.MigrationsAssembly("StudentHelper.WebApi")));
+builder.Services.AddDbContext<CourseContext>();
 
+
+builder.Services.AddSingleton<DbLogger>();
+builder.Services.AddSingleton<DbLoggerProvider>();
+builder.Services.AddLogging();
+builder.Services.AddSingleton<ILoggerProvider>(provider => provider.GetService<DbLoggerProvider>());
+builder.Logging.AddDbLogger(options =>
+{
+    builder.Configuration.GetSection("Logging")
+    .GetSection("Database").GetSection("Options").Bind(options);
+});
 
 builder.Services.AddTransient<EmailService>();
 builder.Services.AddScoped<HttpClient>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddTransient<IRepository<Log>, Repository<Log>>();
 builder.Services.AddTransient<IRepository<Student>, Repository<Student>>();
 builder.Services.AddTransient<IRepository<Course>, Repository<Course>>();
 builder.Services.AddTransient<IRepository<SellerApplication>, Repository<SellerApplication>>();
@@ -58,6 +70,8 @@ builder.Services.AddTransient<VideoService>();
 builder.Services.AddTransient<StudentService>();
 builder.Services.AddTransient<SellerService>();
 builder.Services.AddTransient<ProfileService>();
+builder.Services.AddTransient<SellerApplicationService>();
+builder.Services.AddTransient<EnrollmentService>();
 builder.Services.AddTransient<AuthManager>();
 builder.Services.AddTransient<AdminManager>();
 
