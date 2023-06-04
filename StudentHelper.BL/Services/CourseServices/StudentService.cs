@@ -75,16 +75,11 @@ namespace StudentHelper.BL.Services.CourseServices
             {
                 throw new Exception("Курс не найден!");
             }
-            var userSeller = await _sellerRepository.GetByUserId(id);
             var seller = await _sellerRepository.GetByIdAsync(course.SellerId);
 
             var studentBalance = student.MoneyBalance;
 
             var coursePrice = course.Price;
-            if (userSeller.Id == seller.Id)
-            {
-                throw new Exception("Ты не можешь купить свой курс!");
-            }
 
             if (studentBalance >= coursePrice)
             {

@@ -6,7 +6,7 @@ using StudentHelper.Model.Models.Common.CourseResponses;
 using StudentHelper.Model.Models.Entities.CourseDTOs;
 using StudentHelper.Model.Models.Entities.CourseEntities;
 using StudentHelper.Model.Models.Entities.SellerEntities;
-using StudentHelper.Model.Models.Requests.CourseRequests;
+using StudentHelper.Model.Models.Requests.CourseRequests.PageRequests;
 using System.Security.Claims;
 using System.Web.Http;
 
@@ -47,7 +47,7 @@ namespace StudentHelper.BL.Services.CourseServices
             }
             return pagesDto;
         }
-        public async Task<PageResponse> GetPageById( int pageId)
+        public async Task<PageDTOResponse> GetPageById( int pageId)
         {
             var page = _context.Pages.FirstOrDefault(p => p.Id == pageId);
             if (page == null)
@@ -62,7 +62,7 @@ namespace StudentHelper.BL.Services.CourseServices
                 Content = page.Content,
                 CourseId = page.CourseId,
             };
-            return new PageResponse(200, true, null, pageDto);
+            return new PageDTOResponse(200, true, null, pageDto);
         }
         public async Task<Response> DeletePageById(int pageId)
         {
@@ -83,7 +83,7 @@ namespace StudentHelper.BL.Services.CourseServices
             await _pageRepository.DeleteAsync(pageId);
             return new Response(200, true, "Страница у курса успешно удалена!");
         }
-        public async Task<Response> UpdatePage(UpdatePageRequest request)
+        public async Task<PageResponse> UpdatePage(UpdatePageRequest request)
         {
             var page = await _pageRepository.GetByIdAsync(request.PageId);
             if (page ==null)
@@ -104,9 +104,9 @@ namespace StudentHelper.BL.Services.CourseServices
             page.Description = request.Description;
             page.Content = request.Content;
             await _pageRepository.UpdateAsync(page);
-            return new Response(200, true, "Страница обновлена!");
+            return new PageResponse(200, true, "Страница обновлена!", page.Id);
         }
-        public async Task<Response> CreatePage([FromBody] CreatePageRequest request)
+        public async Task<PageResponse> CreatePage([FromBody] CreatePageRequest request)
         {
             var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             int.TryParse(userId, out var id);
@@ -114,15 +114,15 @@ namespace StudentHelper.BL.Services.CourseServices
             var course = await _courseRepository.GetByIdAsync(request.CourseId);
             if (course == null)
             {
-                return new Response(400, false, "Курс с таким айди не найден!");
+                return new PageResponse(400, false, "Курс с таким айди не найден!", 0);
             }
             if (seller == null)
             {
-                return new Response(400, false, "Ты не являешься продавцом!");
+                return new PageResponse(400, false, "Ты не являешься продавцом!", 0);
             }
             if (seller.Id != course.SellerId)
             {
-                return new Response(400, false, "Этот курс не пренадлежит тебе, ты не можешь добавлять в него страницы!");
+                return new PageResponse(400, false, "Этот курс не пренадлежит тебе, ты не можешь добавлять в него страницы!",0);
             }
             var page = new Page
             {
@@ -132,7 +132,7 @@ namespace StudentHelper.BL.Services.CourseServices
                 CourseId = request.CourseId,
             };
             await _pageRepository.AddAsync(page);
-            return new Response(200, true, "Страница добавлена!");
+            return new PageResponse(200, true, "Страница добавлена!", page.Id);
         }
     }
 }

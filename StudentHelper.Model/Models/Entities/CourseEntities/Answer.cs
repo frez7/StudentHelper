@@ -8,5 +8,6 @@ namespace StudentHelper.Model.Models.Entities.CourseEntities
         public bool IsCorrect { get; set; }
         public int QuestionId { get; set; }
         public Question Question { get; set; }
+        
     }
 }

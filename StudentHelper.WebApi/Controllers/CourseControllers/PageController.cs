@@ -4,7 +4,7 @@ using StudentHelper.BL.Services.CourseServices;
 using StudentHelper.Model.Models.Common;
 using StudentHelper.Model.Models.Common.CourseResponses;
 using StudentHelper.Model.Models.Entities.CourseDTOs;
-using StudentHelper.Model.Models.Requests.CourseRequests;
+using StudentHelper.Model.Models.Requests.CourseRequests.PageRequests;
 
 namespace StudentHelper.WebApi.Controllers.CourseControllers
 {
@@ -32,12 +32,12 @@ namespace StudentHelper.WebApi.Controllers.CourseControllers
         }
 
         [HttpGet("course/page/{pageId}")]
-        public async Task<PageResponse> GetPage(int pageId)
+        public async Task<PageDTOResponse> GetPage(int pageId)
         {
             return await _pageService.GetPageById(pageId);
         }
 
-        [HttpPut("course/page/update")]
+        [HttpPost("course/page/update")]
         public async Task<Response> UpdatePage([FromBody] UpdatePageRequest request)
         {
             return await _pageService.UpdatePage(request);

@@ -64,6 +64,9 @@ builder.Services.AddTransient<IRepository<StudentCourse>, Repository<StudentCour
 builder.Services.AddTransient<IRepository<Page>, Repository<Page>>();
 builder.Services.AddTransient<IRepository<VideoLesson>,  Repository<VideoLesson>>();
 builder.Services.AddTransient<IRepository<Enrollment>, Repository<Enrollment>>();
+builder.Services.AddTransient<IRepository<Test>, Repository<Test>>();
+builder.Services.AddTransient<IRepository<Question>, Repository<Question>>();
+builder.Services.AddTransient<IRepository<Answer>, Repository<Answer>>();
 builder.Services.AddTransient<PageService>();
 builder.Services.AddTransient<CourseService>();
 builder.Services.AddTransient<VideoService>();
@@ -74,6 +77,9 @@ builder.Services.AddTransient<SellerApplicationService>();
 builder.Services.AddTransient<EnrollmentService>();
 builder.Services.AddTransient<AuthManager>();
 builder.Services.AddTransient<AdminManager>();
+builder.Services.AddTransient<TestService>();
+builder.Services.AddTransient<QuestionService>();
+builder.Services.AddTransient<AnswerService>();
 
 
 builder.Services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();

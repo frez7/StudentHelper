@@ -1,4 +1,4 @@
-﻿namespace StudentHelper.Model.Models.Requests.CourseRequests
+﻿namespace StudentHelper.Model.Models.Requests.CourseRequests.PageRequests
 {
     public class CreatePageRequest
     {

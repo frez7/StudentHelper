@@ -6,6 +6,7 @@ using StudentHelper.Model.Data;
 using StudentHelper.Model.Data.Repository;
 using StudentHelper.Model.Models;
 using StudentHelper.Model.Models.Common;
+using StudentHelper.Model.Models.Common.CourseResponses;
 using StudentHelper.Model.Models.Entities;
 using StudentHelper.Model.Models.Entities.CourseDTOs;
 using StudentHelper.Model.Models.Entities.CourseEntities;
@@ -45,14 +46,14 @@ namespace StudentHelper.BL.Services.CourseServices
             _pageService = pageService;
             _httpContextAccessor = httpContextAccessor;
         }
-        public async Task<Response> CreateCourse([Microsoft.AspNetCore.Mvc.FromBody] CreateCourseRequest request)
+        public async Task<CourseResponse> CreateCourse([Microsoft.AspNetCore.Mvc.FromBody] CreateCourseRequest request)
         {
             var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             int.TryParse(userId, out var id);
             Seller seller = await _sellerRepository.GetByUserId(id);
             if (seller == null)
             {
-                return new Response(400, false, "Ты не являешься продавцом!");
+                return new CourseResponse(400, false, "Ты не являешься продавцом!",0);
             }
             var course = new Course
             {
@@ -64,7 +65,7 @@ namespace StudentHelper.BL.Services.CourseServices
                 SellerId = seller.Id,
             };
             await _courseRepository.AddAsync(course);
-            return new Response(200, true, "Вы успешно создали курс!");
+            return new CourseResponse(200, true, "Вы успешно создали курс!", course.Id);
         }
         public async Task<CourseDTO> GetCourse(int id)
         {
@@ -127,7 +128,7 @@ namespace StudentHelper.BL.Services.CourseServices
             var fileStream = new FileStream(imagePath, FileMode.Open, FileAccess.Read);
             return new FileStreamResult(fileStream, "image/jpeg");
         }
-        public async Task<Response> UpdateCourse(int id, [System.Web.Http.FromBody] CreateCourseRequest request)
+        public async Task<CourseResponse> UpdateCourse(int id, [System.Web.Http.FromBody] CreateCourseRequest request)
         {
             var course = await _courseRepository.GetByIdAsync(id);
             var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -135,15 +136,15 @@ namespace StudentHelper.BL.Services.CourseServices
             var seller = await _sellerRepository.GetByIdAsync(course.SellerId);
             if (seller == null)
             {
-                return new Response(400, false, "Вы не можете изменить данный курс!!!");
+                return new CourseResponse(400, false, "Вы не можете изменить данный курс!!!", 0);
             }
             else if (seller.UserId != parsedUserId)
             {
-                return new Response(400, false, "Вы не можете изменить данный курс!");
+                return new CourseResponse(400, false, "Вы не можете изменить данный курс!", 0);
             }
             else if (course == null)
             {
-                return new Response(404, false, "Not Found!");
+                return new CourseResponse(404, false, "Not Found!",0);
             }
             else
             {
@@ -153,7 +154,7 @@ namespace StudentHelper.BL.Services.CourseServices
                 course.Price = request.Price;
 
                 await _courseRepository.UpdateAsync(course);
-                return new Response(200, true, "Курс успешно обновлен!");
+                return new CourseResponse(200, true, "Курс успешно обновлен!", course.Id);
             }
 
         }
