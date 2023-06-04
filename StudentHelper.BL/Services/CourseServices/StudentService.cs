@@ -105,7 +105,10 @@ namespace StudentHelper.BL.Services.CourseServices
 
         }
 
+        public async Task<Response> AddToFavourites(int courseId)
+        {
 
+        }
 
 
 
