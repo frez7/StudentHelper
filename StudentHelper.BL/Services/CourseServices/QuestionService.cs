@@ -1,20 +1,13 @@
 ﻿using Microsoft.AspNetCore.Http;
-using StudentHelper.Model.Data.Repository;
 using StudentHelper.Model.Data;
-using StudentHelper.Model.Models.Entities.CourseEntities;
-using StudentHelper.Model.Models.Entities.SellerEntities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using StudentHelper.Model.Models.Requests.CourseRequests.PageRequests;
-using System.Security.Claims;
+using StudentHelper.Model.Data.Repository;
 using StudentHelper.Model.Models.Common;
 using StudentHelper.Model.Models.Common.CourseResponses;
 using StudentHelper.Model.Models.Entities.CourseDTOs;
-using StudentHelper.Model.Models.Requests.CourseRequests.AnswerRequests;
+using StudentHelper.Model.Models.Entities.CourseEntities;
+using StudentHelper.Model.Models.Entities.SellerEntities;
 using StudentHelper.Model.Models.Requests.CourseRequests.QuestionRequests;
+using System.Security.Claims;
 
 namespace StudentHelper.BL.Services.CourseServices
 {

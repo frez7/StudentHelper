@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using StudentHelper.BL.Services.OtherServices;
 using StudentHelper.Model.Data;
 using StudentHelper.Model.Data.Repository;
 using StudentHelper.Model.Models.Common;
@@ -7,7 +8,6 @@ using StudentHelper.Model.Models.Entities.CourseDTOs;
 using StudentHelper.Model.Models.Entities.CourseEntities;
 using StudentHelper.Model.Models.Entities.SellerEntities;
 using StudentHelper.Model.Models.Requests.CourseRequests.PageRequests;
-using System.Security.Claims;
 using System.Web.Http;
 
 namespace StudentHelper.BL.Services.CourseServices
@@ -17,19 +17,35 @@ namespace StudentHelper.BL.Services.CourseServices
         private readonly IRepository<Page> _pageRepository;
         private readonly IRepository<Seller> _sellerRepository;
         private readonly IRepository<Course> _courseRepository;
+        private readonly IRepository<Student> _studentRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly CourseService _courseService;
         private readonly CourseContext _context;
+        private readonly ValidationService _validationService;
+        private readonly GetService _getService;
 
-        public PageService(IRepository<Page> pageRepository, IRepository<Seller> sellerRepository, IRepository<Course> courseRepository, CourseContext context, IHttpContextAccessor httpContextAccessor)
+        public PageService(IRepository<Page> pageRepository, IRepository<Seller> sellerRepository, 
+            IRepository<Course> courseRepository, CourseContext context, IHttpContextAccessor httpContextAccessor,
+            CourseService courseService, IRepository<Student> studentRepository, ValidationService validationService
+            , GetService getService)
         {
             _pageRepository = pageRepository;
             _sellerRepository = sellerRepository;
             _courseRepository = courseRepository;
             _context = context;
             _httpContextAccessor = httpContextAccessor;
+            _courseService = courseService;
+            _studentRepository = studentRepository;
+            _validationService = validationService;
+            _getService = getService;
         }
         public async Task<List<PageDTO>> GetAllPagesByCourseId(int courseId)
         {
+            var validity = await _validationService.CheckCourseRelation(courseId);
+            if (validity == false)
+            {
+                throw new Exception("Вы не приобрели данный курс!");
+            }
             var pages = _context.Pages.Where(p => p.CourseId == courseId).ToList();
             var pagesDto = new List<PageDTO>();
             
@@ -47,13 +63,20 @@ namespace StudentHelper.BL.Services.CourseServices
             }
             return pagesDto;
         }
-        public async Task<PageDTOResponse> GetPageById( int pageId)
+        public async Task<PageDTOResponse> GetPageById(int pageId)
         {
             var page = _context.Pages.FirstOrDefault(p => p.Id == pageId);
             if (page == null)
             {
                 throw new Exception("Страница с таким айди не найдена!");
             }
+            var course = await _pageRepository.GetByIdAsync(page.CourseId);
+            var validity = await _validationService.CheckCourseRelation(course.CourseId);
+            if (validity == false)
+            {
+                throw new Exception("Вы не приобрели данный курс!");
+            }
+            
             var pageDto = new PageDTO
             {
                 Id = pageId,
@@ -71,11 +94,8 @@ namespace StudentHelper.BL.Services.CourseServices
             {
                 throw new Exception("Страница с таким айди не найдена");
             }
-            var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            int.TryParse(userId, out var id);
-            var seller = await _sellerRepository.GetByUserId(id);
-            var course = await _courseRepository.GetByIdAsync(page.CourseId);
-            if (seller.Id != course.SellerId)
+            var validSeller = await _validationService.GetPageOwner(pageId);
+            if (validSeller == false)
             {
                 throw new Exception("Вы не являетесь владельцем данного курса!");
             }
@@ -91,11 +111,8 @@ namespace StudentHelper.BL.Services.CourseServices
                 throw new Exception("Страница не найдена..");
             }
 
-            var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            int.TryParse(userId, out var id);
-            var seller = await _sellerRepository.GetByUserId(id);
-            var course = await _courseRepository.GetByIdAsync(page.CourseId);
-            if (seller.Id != course.SellerId)
+            var validSeller = await _validationService.GetPageOwner(request.PageId);
+            if (validSeller == false)
             {
                 throw new Exception("Вы не являетесь владельцем данного курса!");
             }
@@ -108,21 +125,11 @@ namespace StudentHelper.BL.Services.CourseServices
         }
         public async Task<PageResponse> CreatePage([FromBody] CreatePageRequest request)
         {
-            var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            int.TryParse(userId, out var id);
-            Seller seller = await _sellerRepository.GetByUserId(id);
-            var course = await _courseRepository.GetByIdAsync(request.CourseId);
-            if (course == null)
+            var id = _getService.GetCurrentUserId();
+            var validSeller = await _validationService.GetCourseOwner(request.CourseId);
+            if (validSeller == false)
             {
-                return new PageResponse(400, false, "Курс с таким айди не найден!", 0);
-            }
-            if (seller == null)
-            {
-                return new PageResponse(400, false, "Ты не являешься продавцом!", 0);
-            }
-            if (seller.Id != course.SellerId)
-            {
-                return new PageResponse(400, false, "Этот курс не пренадлежит тебе, ты не можешь добавлять в него страницы!",0);
+                throw new Exception("Вы не являетесь владельцем данного курса!");
             }
             var page = new Page
             {
