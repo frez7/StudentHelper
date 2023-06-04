@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using StudentHelper.BL.Services.OtherServices;
 using StudentHelper.Model.Data;
 using StudentHelper.Model.Data.Repository;
 using StudentHelper.Model.Models;
@@ -29,13 +30,15 @@ namespace StudentHelper.BL.Services.CourseServices
         private readonly IRepository<StudentCourse> _studentCourseRepository;
         private readonly CourseContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly PageService _pageService;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly GetService _getService;
+        private readonly ValidationService _validationService;
 
         public CourseService(IRepository<Course> courseRepository, IRepository<Seller> sellerRepository,
             IRepository<Student> studentRepository, IRepository<StudentCourse> studentCourseRepository,
-            CourseContext context, UserManager<ApplicationUser> userManager, PageService pageService,
-            IHttpContextAccessor httpContextAccessor)
+            CourseContext context, UserManager<ApplicationUser> userManager,
+            IHttpContextAccessor httpContextAccessor, GetService getService,
+            ValidationService validationService)
         {
             _courseRepository = courseRepository;
             _sellerRepository = sellerRepository;
@@ -43,13 +46,13 @@ namespace StudentHelper.BL.Services.CourseServices
             _studentCourseRepository = studentCourseRepository;
             _context = context;
             _userManager = userManager;
-            _pageService = pageService;
             _httpContextAccessor = httpContextAccessor;
+            _getService = getService;
+            _validationService = validationService;
         }
         public async Task<CourseResponse> CreateCourse([Microsoft.AspNetCore.Mvc.FromBody] CreateCourseRequest request)
         {
-            var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            int.TryParse(userId, out var id);
+            var id = _getService.GetCurrentUserId();
             Seller seller = await _sellerRepository.GetByUserId(id);
             if (seller == null)
             {
@@ -74,7 +77,6 @@ namespace StudentHelper.BL.Services.CourseServices
             {
                 throw new Exception("Курс с таким айди не найден!");
             }
-            var pages = await _pageService.GetAllPagesByCourseId(course.Id);
             var courseDTO = new CourseDTO
             {
                 Description = course.Description,
@@ -82,23 +84,16 @@ namespace StudentHelper.BL.Services.CourseServices
                 Price = course.Price,
                 Title = course.Title,
                 SellerId = course.SellerId,
-                Pages = pages,
             };
             return courseDTO;
         }
         public async Task<Response> UpdateCourseImage(int id, IFormFile image)
         {
             var course = await _courseRepository.GetByIdAsync(id);
-            if (course == null)
+            var validate = await _validationService.GetCourseOwner(course.Id);
+            if (validate == false)
             {
-                return new Response(404, false, "Not Found!");
-            }
-            var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            int.TryParse(userId, out var parsedId);
-            var seller = await _sellerRepository.GetByUserId(parsedId);
-            if (seller.Id != course.SellerId)
-            {
-                throw new Exception("Вы не являетесь владельцем данного курса!");
+                throw new Exception("Ты не владелец данного курса!");
             }
             course.Image = image;
             string rootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
@@ -131,20 +126,11 @@ namespace StudentHelper.BL.Services.CourseServices
         public async Task<CourseResponse> UpdateCourse(int id, [System.Web.Http.FromBody] CreateCourseRequest request)
         {
             var course = await _courseRepository.GetByIdAsync(id);
-            var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            int parsedUserId = int.Parse(userId);
-            var seller = await _sellerRepository.GetByIdAsync(course.SellerId);
-            if (seller == null)
+            var parsedId = _getService.GetCurrentUserId();
+            var validate = await _validationService.GetCourseOwner(course.Id);
+            if (validate == false)
             {
-                return new CourseResponse(400, false, "Вы не можете изменить данный курс!!!", 0);
-            }
-            else if (seller.UserId != parsedUserId)
-            {
-                return new CourseResponse(400, false, "Вы не можете изменить данный курс!", 0);
-            }
-            else if (course == null)
-            {
-                return new CourseResponse(404, false, "Not Found!",0);
+                throw new Exception("Ты не владелец данного курса!");
             }
             else
             {
@@ -161,24 +147,17 @@ namespace StudentHelper.BL.Services.CourseServices
         public async Task<Response> DeleteCourse(int id)
         {
             var course = await _courseRepository.GetByIdAsync(id);
-            if (course == null)
+            var validate = await _validationService.GetCourseOwner(course.Id);
+            if (validate == false)
             {
-                return new Response(404, false, "Курс с таким айди не найден!");
-            }
-            var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            int.TryParse(userId, out var parsedId);
-            var seller = await _sellerRepository.GetByUserId(parsedId);
-            if (seller.Id != course.SellerId)
-            {
-                throw new Exception("Вы не являетесь владельцем данного курса!");
+                throw new Exception("Ты не владелец данного курса!");
             }
             await _courseRepository.DeleteAsync(id);
             return new Response(200, true, "Вы успешно удалили данный курс!");
         }
         public async Task<Response> AddCourseToStudent(int courseId)
         {
-            var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            int.TryParse(userId, out var id);
+            var id = _getService.GetCurrentUserId();
 
             var student = await _studentRepository.GetByUserId(id);
             var course = await _courseRepository.GetByIdAsync(courseId);
@@ -200,8 +179,7 @@ namespace StudentHelper.BL.Services.CourseServices
         }
         public async Task<Response> RemoveCourseFromStudent(int courseId)
         {
-            var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            int.TryParse(userId, out var id);
+            var id = _getService.GetCurrentUserId();
 
             var student = await _studentRepository.GetByUserId(id);
             var studentCourse = await _studentCourseRepository.FindManyToMany(student.Id, courseId);

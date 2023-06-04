@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using StudentHelper.BL.Services.OtherServices;
 using StudentHelper.Model.Data;
 using StudentHelper.Model.Data.Repository;
 using StudentHelper.Model.Models.Common;
@@ -8,48 +9,37 @@ using StudentHelper.Model.Models.Entities.CourseDTOs;
 using StudentHelper.Model.Models.Entities.CourseEntities;
 using StudentHelper.Model.Models.Entities.SellerEntities;
 using StudentHelper.Model.Models.Requests.CourseRequests;
-using System.Security.Claims;
 
 namespace StudentHelper.BL.Services.CourseServices
 {
     public class VideoService
     {
-        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IRepository<VideoLesson> _videoLessonRepository;
         private readonly IRepository<Course> _courseRepository;
         private readonly IRepository<Seller> _sellerRepository;
         private readonly IRepository<Page> _pageRepository;
         private readonly CourseContext _dbContext;
+        private readonly GetService _getService;
+        private readonly ValidationService _validationService;
 
-        public VideoService(IHttpContextAccessor httpContextAccessor, IRepository<VideoLesson> videoLessonRepository,
+        public VideoService(IRepository<VideoLesson> videoLessonRepository,
             IRepository<Course> courseRepository, IRepository<Seller> sellerRepository, IRepository<Page> pageRepository
-            ,CourseContext dbContext)
+            ,CourseContext dbContext, GetService getService, ValidationService validationService)
         {
-            _httpContextAccessor = httpContextAccessor;
             _videoLessonRepository = videoLessonRepository;
             _courseRepository = courseRepository;
             _sellerRepository = sellerRepository;
             _pageRepository = pageRepository;
             _dbContext = dbContext;
+            _getService = getService;
+            _validationService = validationService;
         }
         public async Task<VideoResponse> AddVideoLesson([FromBody] AddVideoLessonRequest request)
         {
-            var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            int.TryParse(userId, out var id);
-            Seller seller = await _sellerRepository.GetByUserId(id);
-            var page = await _pageRepository.GetByIdAsync(request.PageId);
-            var course = await _courseRepository.GetByIdAsync(page.CourseId);
-            if (page == null)
+            var validSeller = await _validationService.GetPageOwner(request.PageId);
+            if (validSeller == false)
             {
-                throw new Exception("Страница с таким айди не найдена!");
-            }
-            if (seller == null)
-            {
-                throw new Exception("Ты не являешься продавцом!");
-            }
-            if (seller.Id != course.SellerId)
-            {
-                throw new Exception("Этот курс не пренадлежит тебе, ты не можешь добавлять в него видеоуроки!");
+                throw new Exception("Вы не являетесь владельцем данного курса!");
             }
             var videoLesson = new VideoLesson
             {
@@ -105,8 +95,7 @@ namespace StudentHelper.BL.Services.CourseServices
                 throw new Exception("Страница не найдена..");
             }
 
-            var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            int.TryParse(userId, out var id);
+            var id = _getService.GetCurrentUserId();
             var seller = await _sellerRepository.GetByUserId(id);
             var page = await _pageRepository.GetByIdAsync(request.PageId);
             var course = await _courseRepository.GetByIdAsync(page.CourseId);
@@ -128,8 +117,7 @@ namespace StudentHelper.BL.Services.CourseServices
             {
                 throw new Exception("Данного видео не существует!");
             }
-            var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            int.TryParse(userId, out var id);
+            var id = _getService.GetCurrentUserId();
             var seller = await _sellerRepository.GetByUserId(id);
             var page = await _pageRepository.GetByIdAsync(video.PageId);
             var course = await _courseRepository.GetByIdAsync(page.CourseId);

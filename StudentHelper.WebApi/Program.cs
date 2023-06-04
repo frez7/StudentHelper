@@ -80,6 +80,8 @@ builder.Services.AddTransient<AdminManager>();
 builder.Services.AddTransient<TestService>();
 builder.Services.AddTransient<QuestionService>();
 builder.Services.AddTransient<AnswerService>();
+builder.Services.AddTransient<ValidationService>();
+builder.Services.AddTransient<GetService>();
 
 
 builder.Services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
