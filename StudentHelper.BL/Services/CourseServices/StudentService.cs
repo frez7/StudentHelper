@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using StudentHelper.Model.Models.Common;
 using System.Security.Claims;
 using StudentHelper.BL.Services.SellerServices;
+using StudentHelper.BL.Services.OtherServices;
 
 namespace StudentHelper.BL.Services.CourseServices
 {
@@ -25,10 +26,11 @@ namespace StudentHelper.BL.Services.CourseServices
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly CourseService _courseService;
         private readonly EnrollmentService _enrollmentService;
+        private readonly GetService _getService;
 
         public StudentService(IRepository<Course> courseRepository, IRepository<Student> studentRepository, IRepository<Seller> sellerRepository, 
             CourseContext context, IHttpContextAccessor httpContextAccessor, CourseService courseService,
-            EnrollmentService enrollmentService)
+            EnrollmentService enrollmentService, GetService getService)
         {
             _courseRepository = courseRepository;
             _studentRepository = studentRepository;
@@ -37,12 +39,12 @@ namespace StudentHelper.BL.Services.CourseServices
             _httpContextAccessor = httpContextAccessor;
             _courseService = courseService;
             _enrollmentService = enrollmentService;
+            _getService = getService;
         }
 
         public async Task<IncreaseMoneyBalanceResponse> IncreaseMoneyBalance(int money)
         {
-            var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            int.TryParse(userId, out var id);
+            var id = _getService.GetCurrentUserId();
             var student = await _studentRepository.GetByUserId(id);
 
             student.MoneyBalance += money;
@@ -55,8 +57,7 @@ namespace StudentHelper.BL.Services.CourseServices
 
         public async Task<IncreaseMoneyBalanceResponse> GetBalance()
         {
-            var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            int.TryParse(userId, out var id);
+            var id = _getService.GetCurrentUserId();
             var student = await _studentRepository.GetByUserId(id);
 
             return new IncreaseMoneyBalanceResponse(200, true, "Информация о балансе получена.", student.MoneyBalance);
@@ -65,11 +66,10 @@ namespace StudentHelper.BL.Services.CourseServices
 
         public async Task<Response> PaymentForCourse(int courseId)
         {
-            var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            int.TryParse(userId, out var id);
+            var id = _getService.GetCurrentUserId();
             var student = await _studentRepository.GetByUserId(id);
 
-            //вычисляю курс по айди и беру его прайс
+     
             var course = await _courseRepository.GetByIdAsync(courseId);
             if (course == null)
             {

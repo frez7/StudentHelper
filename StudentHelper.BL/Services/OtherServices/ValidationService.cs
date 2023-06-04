@@ -62,6 +62,10 @@ namespace StudentHelper.BL.Services.OtherServices
             }
             var parsedId = _getService.GetCurrentUserId();
             var seller = await _sellerRepository.GetByUserId(parsedId);
+            if (seller == null)
+            {
+                throw new Exception("Вы не являетесь продавцом!");
+            }
             if (seller.Id != course.SellerId)
             {
                 return false;
@@ -81,8 +85,8 @@ namespace StudentHelper.BL.Services.OtherServices
         }
         public async Task<bool> GetTestOwner(int testId)
         {
-            var test = await _videoRepository.GetByIdAsync(testId);
-            var page = await _testRepository.GetByIdAsync(test.PageId);
+            var test = await _testRepository.GetByIdAsync(testId);
+            var page = await _pageRepository.GetByIdAsync(test.PageId);
             var result = await GetPageOwner(page.Id);
             if (result == true)
             {
@@ -93,7 +97,7 @@ namespace StudentHelper.BL.Services.OtherServices
         public async Task<bool> GetQuestionOwner(int questionId)
         {
             var question = await _questionRepository.GetByIdAsync(questionId);
-            var test = await _videoRepository.GetByIdAsync(question.TestId);
+            var test = await _testRepository.GetByIdAsync(question.TestId);
             var result = await GetTestOwner(test.Id);
             if (result == true)
             {

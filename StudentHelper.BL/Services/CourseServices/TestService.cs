@@ -1,15 +1,15 @@
-﻿using Microsoft.AspNetCore.Http;
-using StudentHelper.Model.Data.Repository;
+﻿using Azure.Core;
+using Microsoft.AspNetCore.Http;
+using StudentHelper.BL.Services.OtherServices;
 using StudentHelper.Model.Data;
-using StudentHelper.Model.Models.Entities.CourseEntities;
-using StudentHelper.Model.Models.Entities.SellerEntities;
+using StudentHelper.Model.Data.Repository;
 using StudentHelper.Model.Models.Common;
-using System.Security.Claims;
-using Microsoft.EntityFrameworkCore;
 using StudentHelper.Model.Models.Common.CourseResponses;
 using StudentHelper.Model.Models.Entities.CourseDTOs;
-using StudentHelper.Model.Models.Requests.CourseRequests.PageRequests;
+using StudentHelper.Model.Models.Entities.CourseEntities;
+using StudentHelper.Model.Models.Entities.SellerEntities;
 using StudentHelper.Model.Models.Requests.CourseRequests.TestRequests;
+using System.Security.Claims;
 
 namespace StudentHelper.BL.Services.CourseServices
 {
@@ -24,10 +24,13 @@ namespace StudentHelper.BL.Services.CourseServices
         private readonly IRepository<Test> _testRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly CourseContext _dbContext;
+        private readonly GetService _getService;
+        private readonly ValidationService _validationService;
 
         public TestService(IRepository<Answer> answerRepository, IRepository<Question> questionRepository, IRepository<Seller> sellerRepository, 
-            IRepository<Course> courseRepository, IRepository<Student> studentRepository, IRepository<Page> pageRepository, 
-            IRepository<Test> testRepository, IHttpContextAccessor httpContextAccessor, CourseContext dbContext)
+            IRepository<Course> courseRepository, IRepository<Student> studentRepository, IRepository<Page> pageRepository,
+            IRepository<Test> testRepository, IHttpContextAccessor httpContextAccessor, CourseContext dbContext
+, GetService getService, ValidationService validationService)
         {
             _answerRepository = answerRepository;
             _questionRepository = questionRepository;
@@ -38,21 +41,16 @@ namespace StudentHelper.BL.Services.CourseServices
             _testRepository = testRepository;
             _httpContextAccessor = httpContextAccessor;
             _dbContext = dbContext;
+            _getService = getService;
+            _validationService = validationService;
         }
 
         public async Task<TestResponse> CreateTest(CreateTestRequest request)
         {
-            var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            int.TryParse(userId, out var id);
-            Seller seller = await _sellerRepository.GetByUserId(id);
-            var page = await _pageRepository.GetByIdAsync(request.PageId);
-            if (page == null)
+            var validSeller = await _validationService.GetPageOwner(request.PageId);
+            if (validSeller == false)
             {
-                return new TestResponse(400, false, "Страница с таким айди не найдена!", 0);
-            }
-            if (seller == null)
-            {
-                return new TestResponse(400, false, "Ты не являешься продавцом!", 0);
+                throw new Exception("Вы не являетесь владельцем данного курса!");
             }
             var test = new Test
             {
@@ -89,12 +87,8 @@ namespace StudentHelper.BL.Services.CourseServices
                 throw new Exception("Тест не найден.");
             }
 
-            var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            int.TryParse(userId, out var id);
-            var seller = await _sellerRepository.GetByUserId(id);
-            var page = await _pageRepository.GetByIdAsync(test.PageId);
-            var course = await _courseRepository.GetByIdAsync(page.CourseId);
-            if (seller.Id != course.SellerId)
+            var validSeller = await _validationService.GetTestOwner(request.TestId);
+            if (validSeller == false)
             {
                 throw new Exception("Вы не являетесь владельцем данного курса!");
             }
@@ -112,12 +106,8 @@ namespace StudentHelper.BL.Services.CourseServices
             {
                 throw new Exception("Тест с таким айди не найден");
             }
-            var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            int.TryParse(userId, out var id);
-            var seller = await _sellerRepository.GetByUserId(id);
-            var page = await _pageRepository.GetByIdAsync(test.PageId);
-            var course = await _courseRepository.GetByIdAsync(page.CourseId);
-            if (seller.Id != course.SellerId)
+            var validSeller = await _validationService.GetTestOwner(testId);
+            if (validSeller == false)
             {
                 throw new Exception("Вы не являетесь владельцем данного курса!");
             }

@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Azure.Core;
+using Microsoft.AspNetCore.Http;
+using StudentHelper.BL.Services.OtherServices;
 using StudentHelper.Model.Data;
 using StudentHelper.Model.Data.Repository;
 using StudentHelper.Model.Models.Common;
@@ -22,10 +24,13 @@ namespace StudentHelper.BL.Services.CourseServices
         private readonly IRepository<Page> _pageRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly CourseContext _dbContext;
+        private readonly GetService _getService;
+        private readonly ValidationService _validationService;
 
         public QuestionService(IRepository<Answer> answerRepository, IRepository<Seller> sellerRepository,
             IRepository<Course> courseRepository, IRepository<Student> studentRepository, IHttpContextAccessor httpContextAccessor,
-            CourseContext dbContext, IRepository<Test> testRepository, IRepository<Page> pageRepository, IRepository<Question> questionRepository)
+            CourseContext dbContext, IRepository<Test> testRepository, IRepository<Page> pageRepository, IRepository<Question> questionRepository
+            , GetService getService, ValidationService validationService)
         {
             _answerRepository = answerRepository;
             _sellerRepository = sellerRepository;
@@ -36,22 +41,23 @@ namespace StudentHelper.BL.Services.CourseServices
             _testRepository = testRepository;
             _pageRepository = pageRepository;
             _questionRepository = questionRepository;
+            _getService = getService;
+            _validationService = validationService;
         }
 
 
         public async Task<QuestionResponse> CreateQuestion(CreateQuestionRequest request)
         {
-            var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            int.TryParse(userId, out var id);
-            var seller = await _sellerRepository.GetByUserId(id);    
+            var id = _getService.GetCurrentUserId();
             var test = await _testRepository.GetByIdAsync(request.TestId);
             if (test == null)
             {
                 return new QuestionResponse(400, false, "Тест с таким айди не найден!", 0);
             }
-            if (seller == null)
+            var validSeller = await _validationService.GetTestOwner(request.TestId);
+            if (validSeller == false)
             {
-                return new QuestionResponse(400, false, "Ты не являешься продавцом!", 0);
+                throw new Exception("Вы не являетесь владельцем данного курса!");
             }
             var question = new Question
             {
@@ -86,16 +92,10 @@ namespace StudentHelper.BL.Services.CourseServices
                 throw new Exception("Ответ не найден.");
             }
 
-            var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            int.TryParse(userId, out var id);
-
-            var seller = await _sellerRepository.GetByUserId(id);
-            var test = await _testRepository.GetByIdAsync(question.Id);
-            var page = await _pageRepository.GetByIdAsync(test.PageId);
-            var course = await _courseRepository.GetByIdAsync(page.CourseId);
-            if (seller.Id != course.SellerId)
+            var validSeller = await _validationService.GetQuestionOwner(request.QuestionId);
+            if (validSeller == false)
             {
-                throw new Exception("Вы не являетесь автором этого вопроса!");
+                throw new Exception("Вы не являетесь владельцем данного курса!");
             }
 
             question.Text = request.Text;
@@ -110,15 +110,10 @@ namespace StudentHelper.BL.Services.CourseServices
             {
                 throw new Exception("Вопрос с таким айди не найден");
             }
-            var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            int.TryParse(userId, out var id);
-            var seller = await _sellerRepository.GetByUserId(id);
-            var test = await _testRepository.GetByIdAsync(question.Id);
-            var page = await _pageRepository.GetByIdAsync(test.PageId);
-            var course = await _courseRepository.GetByIdAsync(page.CourseId);
-            if (seller.Id != course.SellerId)
+            var validSeller = await _validationService.GetQuestionOwner(questionId);
+            if (validSeller == false)
             {
-                throw new Exception("Вы не являетесь автором этого вопроса!");
+                throw new Exception("Вы не являетесь владельцем данного курса!");
             }
 
             await _questionRepository.DeleteAsync(questionId);

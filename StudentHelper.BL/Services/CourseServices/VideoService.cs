@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Azure.Core;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using StudentHelper.BL.Services.OtherServices;
 using StudentHelper.Model.Data;
@@ -95,11 +96,8 @@ namespace StudentHelper.BL.Services.CourseServices
                 throw new Exception("Страница не найдена..");
             }
 
-            var id = _getService.GetCurrentUserId();
-            var seller = await _sellerRepository.GetByUserId(id);
-            var page = await _pageRepository.GetByIdAsync(request.PageId);
-            var course = await _courseRepository.GetByIdAsync(page.CourseId);
-            if (seller.Id != course.SellerId)
+            var validSeller = await _validationService.GetVideoLessonOwner(videoId);
+            if (validSeller == false)
             {
                 throw new Exception("Вы не являетесь владельцем данного курса!");
             }
@@ -117,11 +115,8 @@ namespace StudentHelper.BL.Services.CourseServices
             {
                 throw new Exception("Данного видео не существует!");
             }
-            var id = _getService.GetCurrentUserId();
-            var seller = await _sellerRepository.GetByUserId(id);
-            var page = await _pageRepository.GetByIdAsync(video.PageId);
-            var course = await _courseRepository.GetByIdAsync(page.CourseId);
-            if (seller.Id != course.SellerId)
+            var validSeller = await _validationService.GetVideoLessonOwner(videoId);
+            if (validSeller == false)
             {
                 throw new Exception("Вы не являетесь владельцем данного курса!");
             }
