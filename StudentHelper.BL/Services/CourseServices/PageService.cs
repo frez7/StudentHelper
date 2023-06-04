@@ -1,12 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
-using StudentHelper.BL.Services.OtherServices;
+﻿using StudentHelper.BL.Services.OtherServices;
 using StudentHelper.Model.Data;
 using StudentHelper.Model.Data.Repository;
 using StudentHelper.Model.Models.Common;
 using StudentHelper.Model.Models.Common.CourseResponses;
 using StudentHelper.Model.Models.Entities.CourseDTOs;
 using StudentHelper.Model.Models.Entities.CourseEntities;
-using StudentHelper.Model.Models.Entities.SellerEntities;
 using StudentHelper.Model.Models.Requests.CourseRequests.PageRequests;
 using System.Web.Http;
 
@@ -15,27 +13,15 @@ namespace StudentHelper.BL.Services.CourseServices
     public class PageService
     {
         private readonly IRepository<Page> _pageRepository;
-        private readonly IRepository<Seller> _sellerRepository;
-        private readonly IRepository<Course> _courseRepository;
-        private readonly IRepository<Student> _studentRepository;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly CourseService _courseService;
         private readonly CourseContext _context;
         private readonly ValidationService _validationService;
         private readonly GetService _getService;
 
-        public PageService(IRepository<Page> pageRepository, IRepository<Seller> sellerRepository, 
-            IRepository<Course> courseRepository, CourseContext context, IHttpContextAccessor httpContextAccessor,
-            CourseService courseService, IRepository<Student> studentRepository, ValidationService validationService
+        public PageService(IRepository<Page> pageRepository, CourseContext context, ValidationService validationService
             , GetService getService)
         {
             _pageRepository = pageRepository;
-            _sellerRepository = sellerRepository;
-            _courseRepository = courseRepository;
             _context = context;
-            _httpContextAccessor = httpContextAccessor;
-            _courseService = courseService;
-            _studentRepository = studentRepository;
             _validationService = validationService;
             _getService = getService;
         }

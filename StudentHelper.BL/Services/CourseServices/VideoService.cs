@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Azure.Core;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using StudentHelper.BL.Services.OtherServices;
 using StudentHelper.Model.Data;
@@ -15,23 +16,13 @@ namespace StudentHelper.BL.Services.CourseServices
     public class VideoService
     {
         private readonly IRepository<VideoLesson> _videoLessonRepository;
-        private readonly IRepository<Course> _courseRepository;
-        private readonly IRepository<Seller> _sellerRepository;
-        private readonly IRepository<Page> _pageRepository;
         private readonly CourseContext _dbContext;
-        private readonly GetService _getService;
         private readonly ValidationService _validationService;
 
-        public VideoService(IRepository<VideoLesson> videoLessonRepository,
-            IRepository<Course> courseRepository, IRepository<Seller> sellerRepository, IRepository<Page> pageRepository
-            ,CourseContext dbContext, GetService getService, ValidationService validationService)
+        public VideoService(IRepository<VideoLesson> videoLessonRepository ,CourseContext dbContext, ValidationService validationService)
         {
             _videoLessonRepository = videoLessonRepository;
-            _courseRepository = courseRepository;
-            _sellerRepository = sellerRepository;
-            _pageRepository = pageRepository;
             _dbContext = dbContext;
-            _getService = getService;
             _validationService = validationService;
         }
         public async Task<VideoResponse> AddVideoLesson([FromBody] AddVideoLessonRequest request)
@@ -95,11 +86,8 @@ namespace StudentHelper.BL.Services.CourseServices
                 throw new Exception("Страница не найдена..");
             }
 
-            var id = _getService.GetCurrentUserId();
-            var seller = await _sellerRepository.GetByUserId(id);
-            var page = await _pageRepository.GetByIdAsync(request.PageId);
-            var course = await _courseRepository.GetByIdAsync(page.CourseId);
-            if (seller.Id != course.SellerId)
+            var validSeller = await _validationService.GetVideoLessonOwner(videoId);
+            if (validSeller == false)
             {
                 throw new Exception("Вы не являетесь владельцем данного курса!");
             }
@@ -117,11 +105,8 @@ namespace StudentHelper.BL.Services.CourseServices
             {
                 throw new Exception("Данного видео не существует!");
             }
-            var id = _getService.GetCurrentUserId();
-            var seller = await _sellerRepository.GetByUserId(id);
-            var page = await _pageRepository.GetByIdAsync(video.PageId);
-            var course = await _courseRepository.GetByIdAsync(page.CourseId);
-            if (seller.Id != course.SellerId)
+            var validSeller = await _validationService.GetVideoLessonOwner(videoId);
+            if (validSeller == false)
             {
                 throw new Exception("Вы не являетесь владельцем данного курса!");
             }
