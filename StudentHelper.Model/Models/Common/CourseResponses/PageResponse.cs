@@ -1,13 +1,18 @@
-﻿using StudentHelper.Model.Models.Entities.CourseDTOs;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace StudentHelper.Model.Models.Common.CourseResponses
 {
     public class PageResponse : Response
     {
-        public PageDTO? PageDTO { get; set; }
-        public PageResponse(int statusCode, bool success, string message, PageDTO pageDTO) : base(statusCode, success, message)
+
+        public int PageId { get; set; }
+        public PageResponse(int statusCode, bool success, string message, int pageId) : base(statusCode, success, message)
         {
-            PageDTO = pageDTO;
+            PageId = pageId;
         }
 
 
