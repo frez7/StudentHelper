@@ -31,5 +31,11 @@ namespace StudentHelper.WebApi.Controllers.SellerControllers
         {
             return await _enrollmentService.GetSellerEnrollments();
         }
+
+        [HttpGet("Get-Seller-By-Id")]
+        public async Task<SellerDTO> GetSellerById(int id)
+        {
+            return await _sellerService.GetSellerById(id);
+        }
     }
 }
