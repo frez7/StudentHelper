@@ -15,31 +15,18 @@ namespace StudentHelper.BL.Services.CourseServices
 {
     public class QuestionService
     {
-        private readonly IRepository<Answer> _answerRepository;
         private readonly IRepository<Question> _questionRepository;
-        private readonly IRepository<Seller> _sellerRepository;
-        private readonly IRepository<Course> _courseRepository;
-        private readonly IRepository<Student> _studentRepository;
         private readonly IRepository<Test> _testRepository;
-        private readonly IRepository<Page> _pageRepository;
-        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly CourseContext _dbContext;
         private readonly GetService _getService;
         private readonly ValidationService _validationService;
 
-        public QuestionService(IRepository<Answer> answerRepository, IRepository<Seller> sellerRepository,
-            IRepository<Course> courseRepository, IRepository<Student> studentRepository, IHttpContextAccessor httpContextAccessor,
-            CourseContext dbContext, IRepository<Test> testRepository, IRepository<Page> pageRepository, IRepository<Question> questionRepository
+        public QuestionService(CourseContext dbContext, IRepository<Test> testRepository
+            , IRepository<Question> questionRepository
             , GetService getService, ValidationService validationService)
         {
-            _answerRepository = answerRepository;
-            _sellerRepository = sellerRepository;
-            _courseRepository = courseRepository;
-            _studentRepository = studentRepository;
-            _httpContextAccessor = httpContextAccessor;
             _dbContext = dbContext;
             _testRepository = testRepository;
-            _pageRepository = pageRepository;
             _questionRepository = questionRepository;
             _getService = getService;
             _validationService = validationService;

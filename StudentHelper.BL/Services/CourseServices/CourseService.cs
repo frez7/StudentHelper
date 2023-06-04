@@ -30,14 +30,12 @@ namespace StudentHelper.BL.Services.CourseServices
         private readonly IRepository<StudentCourse> _studentCourseRepository;
         private readonly CourseContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly GetService _getService;
         private readonly ValidationService _validationService;
 
         public CourseService(IRepository<Course> courseRepository, IRepository<Seller> sellerRepository,
             IRepository<Student> studentRepository, IRepository<StudentCourse> studentCourseRepository,
-            CourseContext context, UserManager<ApplicationUser> userManager,
-            IHttpContextAccessor httpContextAccessor, GetService getService,
+            CourseContext context, UserManager<ApplicationUser> userManager, GetService getService,
             ValidationService validationService)
         {
             _courseRepository = courseRepository;
@@ -46,7 +44,6 @@ namespace StudentHelper.BL.Services.CourseServices
             _studentCourseRepository = studentCourseRepository;
             _context = context;
             _userManager = userManager;
-            _httpContextAccessor = httpContextAccessor;
             _getService = getService;
             _validationService = validationService;
         }

@@ -23,20 +23,18 @@ namespace StudentHelper.BL.Services.CourseServices
         private readonly IRepository<Student> _studentRepository;
         private readonly IRepository<Seller> _sellerRepository;
         private readonly CourseContext _context;
-        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly CourseService _courseService;
         private readonly EnrollmentService _enrollmentService;
         private readonly GetService _getService;
 
         public StudentService(IRepository<Course> courseRepository, IRepository<Student> studentRepository, IRepository<Seller> sellerRepository, 
-            CourseContext context, IHttpContextAccessor httpContextAccessor, CourseService courseService,
+            CourseContext context, CourseService courseService,
             EnrollmentService enrollmentService, GetService getService)
         {
             _courseRepository = courseRepository;
             _studentRepository = studentRepository;
             _sellerRepository = sellerRepository;
             _context = context;
-            _httpContextAccessor = httpContextAccessor;
             _courseService = courseService;
             _enrollmentService = enrollmentService;
             _getService = getService;

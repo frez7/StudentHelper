@@ -16,23 +16,13 @@ namespace StudentHelper.BL.Services.CourseServices
     public class VideoService
     {
         private readonly IRepository<VideoLesson> _videoLessonRepository;
-        private readonly IRepository<Course> _courseRepository;
-        private readonly IRepository<Seller> _sellerRepository;
-        private readonly IRepository<Page> _pageRepository;
         private readonly CourseContext _dbContext;
-        private readonly GetService _getService;
         private readonly ValidationService _validationService;
 
-        public VideoService(IRepository<VideoLesson> videoLessonRepository,
-            IRepository<Course> courseRepository, IRepository<Seller> sellerRepository, IRepository<Page> pageRepository
-            ,CourseContext dbContext, GetService getService, ValidationService validationService)
+        public VideoService(IRepository<VideoLesson> videoLessonRepository ,CourseContext dbContext, ValidationService validationService)
         {
             _videoLessonRepository = videoLessonRepository;
-            _courseRepository = courseRepository;
-            _sellerRepository = sellerRepository;
-            _pageRepository = pageRepository;
             _dbContext = dbContext;
-            _getService = getService;
             _validationService = validationService;
         }
         public async Task<VideoResponse> AddVideoLesson([FromBody] AddVideoLessonRequest request)
