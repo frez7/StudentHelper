@@ -72,6 +72,11 @@ namespace StudentHelper.Model.Data.Repository
                 var studentCourse = await _context.StudentCourses.FindAsync(firstId, secondId);
                 return studentCourse as T;
             }
+            else if(typeof(T) == typeof(FavouriteCourse))
+            {
+                var favouriteCourse = await _context.Favourites.FindAsync(firstId, secondId);
+                return favouriteCourse as T;
+            }
             return null;
             
         }

@@ -1,15 +1,11 @@
-﻿using Azure.Core;
+﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using StudentHelper.BL.Services.CourseServices;
-using StudentHelper.Model.Data.Repository;
 using StudentHelper.Model.Models.Common;
 using StudentHelper.Model.Models.Common.CourseResponses;
 using StudentHelper.Model.Models.Entities.CourseDTOs;
-using StudentHelper.Model.Models.Entities.CourseEntities;
-using StudentHelper.Model.Models.Entities.SellerEntities;
+using StudentHelper.Model.Models.Queries.VideoLessonQueries;
 using StudentHelper.Model.Models.Requests.CourseRequests.VideoRequests;
-using System.Security.Claims;
 
 namespace StudentHelper.WebApi.Controllers.CourseControllers
 {
@@ -18,35 +14,35 @@ namespace StudentHelper.WebApi.Controllers.CourseControllers
     [Route("api/[controller]")]
     public class VideoLessonController : ControllerBase
     {
-        private readonly VideoService _videoService;
-        public VideoLessonController(VideoService videoService)
+        private readonly IMediator _mediator;
+        public VideoLessonController(IMediator mediator)
         {
-            _videoService = videoService;
+            _mediator = mediator;
         }
         [HttpPost("video/add")]
         public async Task<VideoResponse> AddVideoLesson([FromBody] AddVideoLessonRequest request)
         {
-            return await _videoService.AddVideoLesson(request);
+            return await _mediator.Send(request);
         }
         [HttpGet("video/{videoId}")]
         public async Task<VideoLessonDTO> GetVideoById(int videoId)
         {
-            return await _videoService.GetVideoById(videoId);
+            return await _mediator.Send(new GetVideoByIdQuery { VideoId = videoId });
         }
         [HttpGet("page/{pageId}/videos")]
         public async Task<List<VideoLessonDTO>> GetVideosByPageId(int pageId)
         {
-            return await _videoService.GetVideosByPageId(pageId);
+            return await _mediator.Send(new GetVideosByPageIdQuery { PageId = pageId });
         }
         [HttpPut("video/{videoId}/update")]
         public async Task<VideoResponse> UpdateVideo([FromBody] UpdateVideoLessonRequest request)
         {
-            return await _videoService.UpdateVideo(request);
+            return await _mediator.Send(request);
         }
         [HttpDelete("video/{videoId}/delete")]
         public async Task<Response> DeleteVideo(int videoId)
         {
-            return await _videoService.DeleteVideo(videoId);
+            return await _mediator.Send(new DeleteVideoQuery { VideoId = videoId });
         }
     }
 }

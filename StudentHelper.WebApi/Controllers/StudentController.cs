@@ -50,12 +50,10 @@ namespace StudentHelper.WebApi.Controllers
             return await _studentService.AddToFavourites(courseId);
 
         }
-
         [HttpGet("GetFavourites")]
-        public async Task<List<Course>> GetAllFavourites(int studentId)
+        public async Task<List<Course>> GetAllFavourites()
         {
-            return await _studentService.GetAllFavourites(studentId);
-
+            return await _studentService.GetAllFavourites();
         }
 
         [HttpPost("RemoveFromFavourites")]

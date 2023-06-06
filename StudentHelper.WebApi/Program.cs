@@ -60,6 +60,7 @@ builder.Services.AddTransient<IRepository<Enrollment>, Repository<Enrollment>>()
 builder.Services.AddTransient<IRepository<Test>, Repository<Test>>();
 builder.Services.AddTransient<IRepository<Question>, Repository<Question>>();
 builder.Services.AddTransient<IRepository<Answer>, Repository<Answer>>();
+builder.Services.AddTransient<IRepository<FavouriteCourse>, Repository<FavouriteCourse>>();
 builder.Services.AddTransient<PageService>();
 builder.Services.AddTransient<CourseService>();
 builder.Services.AddTransient<VideoService>();

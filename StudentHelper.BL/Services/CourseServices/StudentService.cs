@@ -29,9 +29,9 @@ namespace StudentHelper.BL.Services.CourseServices
         private readonly GetService _getService;
         private readonly IRepository<FavouriteCourse> _favouriteCourseRepository;
 
-        public StudentService(IRepository<Course> courseRepository, IRepository<Student> studentRepository, IRepository<Seller> sellerRepository, 
+        public StudentService(IRepository<Course> courseRepository, IRepository<Student> studentRepository, IRepository<Seller> sellerRepository,
             CourseContext context, IHttpContextAccessor httpContextAccessor, CourseService courseService,
-            EnrollmentService enrollmentService, GetService getService)
+            EnrollmentService enrollmentService, GetService getService, IRepository<FavouriteCourse> favouriteCourseRepository)
         {
             _courseRepository = courseRepository;
             _studentRepository = studentRepository;
@@ -40,6 +40,7 @@ namespace StudentHelper.BL.Services.CourseServices
             _courseService = courseService;
             _enrollmentService = enrollmentService;
             _getService = getService;
+            _favouriteCourseRepository = favouriteCourseRepository;
         }
 
         public async Task<IncreaseMoneyBalanceResponse> IncreaseMoneyBalance(int money)
@@ -69,7 +70,7 @@ namespace StudentHelper.BL.Services.CourseServices
             var id = _getService.GetCurrentUserId();
             var student = await _studentRepository.GetByUserId(id);
 
-     
+
             var course = await _courseRepository.GetByIdAsync(courseId);
             if (course == null)
             {
@@ -119,7 +120,6 @@ namespace StudentHelper.BL.Services.CourseServices
 
             var favouriteCourse = new FavouriteCourse
             {
-
                 Student = student,
                 Course = course,
             };
@@ -136,12 +136,11 @@ namespace StudentHelper.BL.Services.CourseServices
             var id = _getService.GetCurrentUserId();
 
             var student = await _studentRepository.GetByUserId(id);
-            var favouriteCourse = await _favouriteCourseRepository.FindManyToMany(student.Id, courseId);
-            if(favouriteCourse == null)
+            var favouriteCourse = _context.Favourites.FirstOrDefault(f => f.CourseId == courseId && f.StudentId == student.Id);
+            if (favouriteCourse == null)
             {
-                return new Response(404, false, "У студента не найден данный курс!");
+                throw new Exception("Курс не найден!");
             }
-
             await _favouriteCourseRepository.RemoveAsync(favouriteCourse);
 
             return new Response(200, true, "Вы успешно удалили курс из избранных!");
@@ -149,10 +148,12 @@ namespace StudentHelper.BL.Services.CourseServices
         }
 
 
-        public async Task<List<Course>> GetAllFavourites(int studentId)
+        public async Task<List<Course>> GetAllFavourites()
         {
+            var userId = _getService.GetCurrentUserId();
+            var student = await _studentRepository.GetByUserId(userId);
             var favouriteCourseIds = _context.Favourites
-                .Where(sc => sc.StudentId == studentId)
+                .Where(sc => sc.StudentId == student.Id)
                 .OrderBy(sc => sc.StudentId)
                 .Select(sc => sc.CourseId)
                 .ToList();
@@ -167,10 +168,5 @@ namespace StudentHelper.BL.Services.CourseServices
             return favouriteCourses;
 
         }
-
-
-
-
-
-        }
+    } 
 }
