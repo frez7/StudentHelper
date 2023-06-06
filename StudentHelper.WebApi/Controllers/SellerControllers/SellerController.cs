@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using StudentHelper.BL.Services.SellerServices;
 using StudentHelper.Model.Models.Common.SellerResponses;
+using StudentHelper.Model.Models.Entities.CourseDTOs;
 using StudentHelper.Model.Models.Entities.SellerEntities;
 
 namespace StudentHelper.WebApi.Controllers.SellerControllers
@@ -36,6 +37,11 @@ namespace StudentHelper.WebApi.Controllers.SellerControllers
         public async Task<SellerDTO> GetSellerById(int id)
         {
             return await _sellerService.GetSellerById(id);
+        }
+        [HttpGet("seller/courses")]
+        public async Task<List<CourseDTO>> GetAllSellerCourses()
+        {
+            return await _sellerService.GetAllSellerCourses();
         }
     }
 }
