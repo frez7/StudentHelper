@@ -14,6 +14,7 @@ using StudentHelper.Model.Models.Entities;
 using StudentHelper.Model.Models.Entities.CourseEntities;
 using StudentHelper.Model.Models.Entities.SellerEntities;
 using StudentHelper.Model.Models.Requests;
+using StudentHelper.Model.Models.Requests.UserRequests;
 using StudentHelper.WebApi.Extensions;
 using StudentHelper.WebApi.Service;
 using System.IdentityModel.Tokens.Jwt;

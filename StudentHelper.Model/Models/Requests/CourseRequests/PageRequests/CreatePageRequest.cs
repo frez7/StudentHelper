@@ -1,6 +1,9 @@
-﻿namespace StudentHelper.Model.Models.Requests.CourseRequests.PageRequests
+﻿using MediatR;
+using StudentHelper.Model.Models.Common.CourseResponses;
+
+namespace StudentHelper.Model.Models.Requests.CourseRequests.PageRequests
 {
-    public class CreatePageRequest
+    public class CreatePageRequest : IRequest<PageResponse>
     {
         public int CourseId { get; set; }
         public string Title { get; set; }

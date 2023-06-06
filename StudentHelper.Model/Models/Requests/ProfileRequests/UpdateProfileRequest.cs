@@ -1,6 +1,9 @@
-﻿namespace StudentHelper.Model.Models.Requests.ProfileRequests
+﻿using MediatR;
+using StudentHelper.Model.Models.Common;
+
+namespace StudentHelper.Model.Models.Requests.ProfileRequests
 {
-    public class UpdateProfileRequest
+    public class UpdateProfileRequest : IRequest<Response>
     {
         public string AboutMe { get; set; }
         public string City { get; set; }

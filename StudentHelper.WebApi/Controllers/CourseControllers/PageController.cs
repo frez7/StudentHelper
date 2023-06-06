@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StudentHelper.BL.Services.CourseServices;
 using StudentHelper.Model.Models.Common;
@@ -14,15 +15,17 @@ namespace StudentHelper.WebApi.Controllers.CourseControllers
     public class PageController : ControllerBase
     {
         private readonly PageService _pageService;
-        public PageController(PageService pageService)
+        private readonly IMediator _mediator;
+        public PageController(PageService pageService, IMediator mediator)
         {
             _pageService = pageService;
+            _mediator = mediator;
         }
 
         [HttpPost("course/page/create")]
-        public async Task<Response> CreatePage([FromBody] CreatePageRequest request)
+        public async Task<PageResponse> CreatePage([FromBody] CreatePageRequest request)
         {
-            return await _pageService.CreatePage(request);
+            return await _mediator.Send(request);
         }
 
         [HttpGet("course/{courseId}/pages")]
@@ -38,7 +41,7 @@ namespace StudentHelper.WebApi.Controllers.CourseControllers
         }
 
         [HttpPost("course/page/update")]
-        public async Task<Response> UpdatePage([FromBody] UpdatePageRequest request)
+        public async Task<PageResponse> UpdatePage([FromBody] UpdatePageRequest request)
         {
             return await _pageService.UpdatePage(request);
         }
