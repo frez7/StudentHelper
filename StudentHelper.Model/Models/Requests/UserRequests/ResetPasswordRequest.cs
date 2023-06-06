@@ -1,13 +1,15 @@
-﻿using System;
+﻿using MediatR;
+using StudentHelper.Model.Models.Common;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StudentHelper.Model.Models.Requests
+namespace StudentHelper.Model.Models.Requests.UserRequests
 {
-    public class ResetPasswordRequest
+    public class ResetPasswordRequest : IRequest<Response>
     {
         [Required]
         public string UserName { get; set; }
