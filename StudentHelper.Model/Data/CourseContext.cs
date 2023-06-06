@@ -22,6 +22,7 @@ namespace StudentHelper.Model.Data
         public DbSet<Answer> Answers { get; set; }
         public DbSet<Enrollment> Enrollments { get; set; }
         public DbSet<Log> Logs { get; set; }
+        public DbSet<FavouriteCourse> Favourites { get; set; }
 
         public CourseContext(DbContextOptions<CourseContext> options)
         : base(options)
@@ -98,6 +99,7 @@ namespace StudentHelper.Model.Data
                 .WithOne(a => a.Question)
                 .HasForeignKey(a => a.QuestionId)
                 .OnDelete(DeleteBehavior.Cascade);
+
         }
     }
 }

@@ -12,6 +12,7 @@ using StudentHelper.Model.Models.Entities;
 using StudentHelper.Model.Models.Entities.CourseDTOs;
 using StudentHelper.Model.Models.Entities.CourseEntities;
 using StudentHelper.Model.Models.Entities.SellerEntities;
+using StudentHelper.Model.Models.Queries.CourseQueries;
 using StudentHelper.Model.Models.Requests.CourseRequests;
 using System.Linq;
 using System.Security.Claims;
@@ -76,6 +77,7 @@ namespace StudentHelper.BL.Services.CourseServices
             }
             var courseDTO = new CourseDTO
             {
+                Id = id,
                 Description = course.Description,
                 IsFree = course.IsFree,
                 Price = course.Price,
@@ -120,10 +122,9 @@ namespace StudentHelper.BL.Services.CourseServices
             var fileStream = new FileStream(imagePath, FileMode.Open, FileAccess.Read);
             return new FileStreamResult(fileStream, "image/jpeg");
         }
-        public async Task<CourseResponse> UpdateCourse(int id, [System.Web.Http.FromBody] CreateCourseRequest request)
+        public async Task<CourseResponse> UpdateCourse([System.Web.Http.FromBody] UpdateCourseRequest request)
         {
-            var course = await _courseRepository.GetByIdAsync(id);
-            var parsedId = _getService.GetCurrentUserId();
+            var course = await _courseRepository.GetByIdAsync(request.CourseId);
             var validate = await _validationService.GetCourseOwner(course.Id);
             if (validate == false)
             {

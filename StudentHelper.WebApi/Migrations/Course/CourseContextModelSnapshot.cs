@@ -128,6 +128,29 @@ namespace StudentHelper.WebApi.Migrations.Course
                     b.ToTable("Courses");
                 });
 
+            modelBuilder.Entity("StudentHelper.Model.Models.Entities.CourseEntities.FavouriteCourse", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CourseId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StudentId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CourseId");
+
+                    b.HasIndex("StudentId");
+
+                    b.ToTable("Favourites");
+                });
+
             modelBuilder.Entity("StudentHelper.Model.Models.Entities.CourseEntities.Page", b =>
                 {
                     b.Property<int>("Id")
@@ -425,6 +448,25 @@ namespace StudentHelper.WebApi.Migrations.Course
                         .IsRequired();
 
                     b.Navigation("Seller");
+                });
+
+            modelBuilder.Entity("StudentHelper.Model.Models.Entities.CourseEntities.FavouriteCourse", b =>
+                {
+                    b.HasOne("StudentHelper.Model.Models.Entities.CourseEntities.Course", "Course")
+                        .WithMany()
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("StudentHelper.Model.Models.Entities.CourseEntities.Student", "Student")
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Course");
+
+                    b.Navigation("Student");
                 });
 
             modelBuilder.Entity("StudentHelper.Model.Models.Entities.CourseEntities.Page", b =>

@@ -8,7 +8,7 @@ using StudentHelper.Model.Models.Common.CourseResponses;
 using StudentHelper.Model.Models.Entities.CourseDTOs;
 using StudentHelper.Model.Models.Entities.CourseEntities;
 using StudentHelper.Model.Models.Entities.SellerEntities;
-using StudentHelper.Model.Models.Requests.CourseRequests;
+using StudentHelper.Model.Models.Requests.CourseRequests.VideoRequests;
 using System.Security.Claims;
 
 namespace StudentHelper.WebApi.Controllers.CourseControllers
@@ -39,9 +39,9 @@ namespace StudentHelper.WebApi.Controllers.CourseControllers
             return await _videoService.GetVideosByPageId(pageId);
         }
         [HttpPut("video/{videoId}/update")]
-        public async Task<VideoResponse> UpdateVideo(int videoId, [FromBody] AddVideoLessonRequest request)
+        public async Task<VideoResponse> UpdateVideo([FromBody] UpdateVideoLessonRequest request)
         {
-            return await _videoService.UpdateVideo(videoId, request);
+            return await _videoService.UpdateVideo(request);
         }
         [HttpDelete("video/{videoId}/delete")]
         public async Task<Response> DeleteVideo(int videoId)

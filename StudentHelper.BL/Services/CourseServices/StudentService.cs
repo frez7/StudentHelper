@@ -14,6 +14,7 @@ using StudentHelper.Model.Models.Common;
 using System.Security.Claims;
 using StudentHelper.BL.Services.SellerServices;
 using StudentHelper.BL.Services.OtherServices;
+using StudentHelper.Model.Models.Entities.CourseDTOs;
 
 namespace StudentHelper.BL.Services.CourseServices
 {
@@ -26,9 +27,10 @@ namespace StudentHelper.BL.Services.CourseServices
         private readonly CourseService _courseService;
         private readonly EnrollmentService _enrollmentService;
         private readonly GetService _getService;
+        private readonly IRepository<FavouriteCourse> _favouriteCourseRepository;
 
         public StudentService(IRepository<Course> courseRepository, IRepository<Student> studentRepository, IRepository<Seller> sellerRepository, 
-            CourseContext context, CourseService courseService,
+            CourseContext context, IHttpContextAccessor httpContextAccessor, CourseService courseService,
             EnrollmentService enrollmentService, GetService getService)
         {
             _courseRepository = courseRepository;
@@ -103,28 +105,72 @@ namespace StudentHelper.BL.Services.CourseServices
 
         }
 
+        public async Task<Response> AddToFavourites(int courseId)
+        {
+            var id = _getService.GetCurrentUserId();
+
+            var student = await _studentRepository.GetByUserId(id);
+            var course = await _courseRepository.GetByIdAsync(courseId);
+
+            if (course == null || student == null)
+            {
+                return new Response(404, false, "Одна из сущностей не найдена!");
+            }
+
+            var favouriteCourse = new FavouriteCourse
+            {
+
+                Student = student,
+                Course = course,
+            };
+
+            await _favouriteCourseRepository.AddAsync(favouriteCourse);
+
+            return new Response(200, true, "Вы успешно добавили курс к избранным!");
+
+        }
+
+
+        public async Task<Response> RemoveFromFavourites(int courseId)
+        {
+            var id = _getService.GetCurrentUserId();
+
+            var student = await _studentRepository.GetByUserId(id);
+            var favouriteCourse = await _favouriteCourseRepository.FindManyToMany(student.Id, courseId);
+            if(favouriteCourse == null)
+            {
+                return new Response(404, false, "У студента не найден данный курс!");
+            }
+
+            await _favouriteCourseRepository.RemoveAsync(favouriteCourse);
+
+            return new Response(200, true, "Вы успешно удалили курс из избранных!");
+
+        }
+
+
+        public async Task<List<Course>> GetAllFavourites(int studentId)
+        {
+            var favouriteCourseIds = _context.Favourites
+                .Where(sc => sc.StudentId == studentId)
+                .OrderBy(sc => sc.StudentId)
+                .Select(sc => sc.CourseId)
+                .ToList();
+
+            var favouriteCourses = new List<Course>();
+            for (int i = 0; i < favouriteCourseIds.Count; i++)
+            {
+                var favouriteCourse = await _courseRepository.GetByIdAsync(favouriteCourseIds[i]);
+                favouriteCourses.Add(favouriteCourse);
+            }
+
+            return favouriteCourses;
+
+        }
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    }
+        }
 }
