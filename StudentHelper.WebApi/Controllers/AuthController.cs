@@ -10,7 +10,7 @@ using StudentHelper.Model.Models.Configs;
 using StudentHelper.Model.Models.Entities;
 using StudentHelper.Model.Models.Entities.CourseEntities;
 using StudentHelper.Model.Models.Entities.SellerEntities;
-using StudentHelper.Model.Models.Requests;
+using StudentHelper.Model.Models.Requests.UserRequests;
 using StudentHelper.WebApi.Data;
 using StudentHelper.WebApi.Extensions;
 using StudentHelper.WebApi.Managers;
@@ -26,28 +26,9 @@ namespace StudentHelper.WebApi.Controllers
     public class AuthController : ControllerBase
     {
         private readonly AuthManager _authManager;
-        private readonly SignInManager<ApplicationUser> _signInManager;
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly RoleManager<IdentityRole<int>> _roleManager;
-        private readonly EmailService _emailService;
-        private readonly SMTPConfig _config;
-        private readonly ITokenService _tokenService;
-        private readonly IConfiguration _configuration;
-        private readonly IRepository<Student> _repository;
-        private readonly IRepository<Seller> _sellerRepository;
 
-        public AuthController(AuthManager authManager, SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole<int>> roleManager, EmailService emailService, SMTPConfig config, ITokenService tokenService, IConfiguration configuration, IRepository<Student> repository, IRepository<Seller> sellerRepository)
-        {
+        public AuthController(AuthManager authManager) { 
             _authManager = authManager;
-            _signInManager = signInManager;
-            _userManager = userManager;
-            _emailService = emailService;
-            _config = config;
-            _roleManager = roleManager;
-            _tokenService = tokenService;
-            _configuration = configuration;
-            _repository = repository;
-            _sellerRepository = sellerRepository;
         }
 
         [AllowAnonymous]

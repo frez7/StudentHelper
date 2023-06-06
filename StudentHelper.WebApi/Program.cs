@@ -1,37 +1,30 @@
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.CookiePolicy;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using StudentHelper.BL.Logging;
+using StudentHelper.BL.Services;
 using StudentHelper.BL.Services.CourseServices;
-using Microsoft.AspNetCore.Hosting;
+using StudentHelper.BL.Services.OtherServices;
+using StudentHelper.BL.Services.SellerServices;
 using StudentHelper.Model.Data;
 using StudentHelper.Model.Data.Repository;
 using StudentHelper.Model.Extensions;
+using StudentHelper.Model.Models.Common.Other;
 using StudentHelper.Model.Models.Configs;
 using StudentHelper.Model.Models.Entities;
 using StudentHelper.Model.Models.Entities.CourseEntities;
 using StudentHelper.Model.Models.Entities.SellerEntities;
-using StudentHelper.WebApi.Controllers;
 using StudentHelper.WebApi.Data;
-using StudentHelper.WebApi.Service;
-using System.Configuration;
-using System.Text;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Routing;
-using StudentHelper.BL.Services.OtherServices;
 using StudentHelper.WebApi.Managers;
-using StudentHelper.BL.Services.SellerServices;
-using StudentHelper.BL.Services;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
-using StudentHelper.BL.Logging;
-using StudentHelper.Model.Models.Common.Other;
-using StudentHelper.WebApi.Extensions;
+using StudentHelper.WebApi.Service;
+using System.Text;
+using MediatR;
+using StudentHelper.BL.Handlers.CourseHandlers.CourseHandling;
+using StudentHelper.BL.Handlers;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton(provider =>
@@ -83,7 +76,7 @@ builder.Services.AddTransient<AnswerService>();
 builder.Services.AddTransient<ValidationService>();
 builder.Services.AddTransient<GetService>();
 
-
+builder.Services.AddMediatR(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
 
 

@@ -2,11 +2,15 @@
 using StudentHelper.Model.Models.Common;
 using System.ComponentModel.DataAnnotations;
 
-namespace StudentHelper.Model.Models.Requests.AdminRequests
+namespace StudentHelper.Model.Models.Requests.UserRequests
 {
-    public class GetUserByNameRequest : IRequest<UserResponse>
+    public class LoginRequest : IRequest<AuthResponse>
     {
         [Required]
         public string UserName { get; set; }
+
+        [Required]
+        public string Password { get; set; }
+
     }
 }

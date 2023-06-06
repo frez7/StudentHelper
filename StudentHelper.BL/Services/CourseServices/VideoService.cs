@@ -9,7 +9,7 @@ using StudentHelper.Model.Models.Common.CourseResponses;
 using StudentHelper.Model.Models.Entities.CourseDTOs;
 using StudentHelper.Model.Models.Entities.CourseEntities;
 using StudentHelper.Model.Models.Entities.SellerEntities;
-using StudentHelper.Model.Models.Requests.CourseRequests;
+using StudentHelper.Model.Models.Requests.CourseRequests.VideoRequests;
 
 namespace StudentHelper.BL.Services.CourseServices
 {
@@ -78,15 +78,15 @@ namespace StudentHelper.BL.Services.CourseServices
             };
             return videoDto;
         }
-        public async Task<VideoResponse> UpdateVideo(int videoId, [FromBody] AddVideoLessonRequest request)
+        public async Task<VideoResponse> UpdateVideo([FromBody] UpdateVideoLessonRequest request)
         {
-            var video = await _videoLessonRepository.GetByIdAsync(videoId);
+            var video = await _videoLessonRepository.GetByIdAsync(request.VideoId);
             if (video == null)
             {
                 throw new Exception("Страница не найдена..");
             }
 
-            var validSeller = await _validationService.GetVideoLessonOwner(videoId);
+            var validSeller = await _validationService.GetVideoLessonOwner(request.VideoId);
             if (validSeller == false)
             {
                 throw new Exception("Вы не являетесь владельцем данного курса!");
@@ -96,7 +96,7 @@ namespace StudentHelper.BL.Services.CourseServices
             video.VideoUrl = request.VideoUrl;
             video.PageId = request.PageId;
             await _videoLessonRepository.UpdateAsync(video);
-            return new VideoResponse(200, true, "Видео обновлено!", videoId);
+            return new VideoResponse(200, true, "Видео обновлено!", request.VideoId);
         }
         public async Task<Response> DeleteVideo(int videoId)
         {

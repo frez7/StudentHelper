@@ -20,7 +20,7 @@ namespace StudentHelper.WebApi.Controllers.CourseControllers
         }
 
         [HttpPost("course/page/create")]
-        public async Task<Response> CreatePage([FromBody] CreatePageRequest request)
+        public async Task<PageResponse> CreatePage([FromBody] CreatePageRequest request)
         {
             return await _pageService.CreatePage(request);
         }
@@ -38,7 +38,7 @@ namespace StudentHelper.WebApi.Controllers.CourseControllers
         }
 
         [HttpPost("course/page/update")]
-        public async Task<Response> UpdatePage([FromBody] UpdatePageRequest request)
+        public async Task<PageResponse> UpdatePage([FromBody] UpdatePageRequest request)
         {
             return await _pageService.UpdatePage(request);
         }
