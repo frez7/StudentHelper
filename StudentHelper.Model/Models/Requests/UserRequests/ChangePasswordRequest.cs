@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace StudentHelper.Model.Models.Requests.UserRequests
 {
-    public class ChangePasswordRequest : IRequest<Response>
+    public class ChangePasswordRequest
     {
         [Required]
         public string CurrentPassword { get; set; }

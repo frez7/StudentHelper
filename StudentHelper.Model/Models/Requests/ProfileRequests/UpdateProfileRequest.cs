@@ -3,7 +3,7 @@ using StudentHelper.Model.Models.Common;
 
 namespace StudentHelper.Model.Models.Requests.ProfileRequests
 {
-    public class UpdateProfileRequest : IRequest<Response>
+    public class UpdateProfileRequest
     {
         public string AboutMe { get; set; }
         public string City { get; set; }

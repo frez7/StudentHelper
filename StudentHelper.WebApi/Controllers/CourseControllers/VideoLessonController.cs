@@ -34,7 +34,7 @@ namespace StudentHelper.WebApi.Controllers.CourseControllers
         {
             return await _mediator.Send(new GetVideosByPageIdQuery { PageId = pageId });
         }
-        [HttpPut("video/{videoId}/update")]
+        [HttpPut("video/update")]
         public async Task<VideoResponse> UpdateVideo([FromBody] UpdateVideoLessonRequest request)
         {
             return await _mediator.Send(request);

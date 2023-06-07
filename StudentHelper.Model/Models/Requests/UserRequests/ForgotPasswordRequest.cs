@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace StudentHelper.Model.Models.Requests.UserRequests
 {
-    public class ForgotPasswordRequest : IRequest<Response>
+    public class ForgotPasswordRequest
     {
         [Required]
         public string RecipientEmail { get; set; }

@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace StudentHelper.Model.Models.Requests.UserRequests
 {
-    public class LoginRequest : IRequest<AuthResponse>
+    public class LoginRequest
     {
         [Required]
         public string UserName { get; set; }
