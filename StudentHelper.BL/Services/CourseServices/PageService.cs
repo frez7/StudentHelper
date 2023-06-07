@@ -13,17 +13,19 @@ namespace StudentHelper.BL.Services.CourseServices
     public class PageService
     {
         private readonly IRepository<Page> _pageRepository;
+        private readonly IRepository<Course> _courseRepository; 
         private readonly CourseContext _context;
         private readonly ValidationService _validationService;
         private readonly GetService _getService;
 
         public PageService(IRepository<Page> pageRepository, CourseContext context, ValidationService validationService
-            , GetService getService)
+            , GetService getService, IRepository<Course> courseRepository)
         {
             _pageRepository = pageRepository;
             _context = context;
             _validationService = validationService;
             _getService = getService;
+            _courseRepository = courseRepository;
         }
         public async Task<List<PageDTO>> GetAllPagesByCourseId(int courseId)
         {
@@ -51,17 +53,12 @@ namespace StudentHelper.BL.Services.CourseServices
         }
         public async Task<PageDTOResponse> GetPageById(int pageId)
         {
-            var page = _context.Pages.FirstOrDefault(p => p.Id == pageId);
+            var page = await _pageRepository.GetByIdAsync(pageId);
             if (page == null)
             {
                 throw new Exception("Страница с таким айди не найдена!");
             }
-            var course = await _pageRepository.GetByIdAsync(page.CourseId);
-            var validity = await _validationService.CheckCourseRelation(course.CourseId);
-            if (validity == false)
-            {
-                throw new Exception("Вы не приобрели данный курс!");
-            }
+            var course = await _courseRepository.GetByIdAsync(page.CourseId);
             
             var pageDto = new PageDTO
             {
